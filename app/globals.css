@@ -5,22 +5,48 @@
   --foreground: #171717;
 }
 
+/* OK: @theme est après tous les @import */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  /* Si tu veux utiliser Inter/Nunito comme fallback:
+     --font-inter: var(--font-inter);
+     --font-nunito: var(--font-nunito);
+  */
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  :root { --background: #0a0a0a; --foreground: #ededed; }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Hauteurs header/footer + zone configurateur (exemple) */
+:root { --header-h: 72px; --footer-h: 120px; }
+.config3d { position: relative; height: calc(100vh - var(--header-h) - var(--footer-h)); width: 100%; overflow: hidden; }
+.config3d canvas { width: 100% !important; height: 100% !important; }
+.config3d .overlay-abs { position: absolute; inset: 0; }
+
+:root{
+  --header-h: 72px;   /* adapte à la hauteur réelle du header */
+  --footer-h: 100px;  /* idem pour le footer (0 si non fixe) */
+}
+
+/* zone Canvas = (écran - header - footer) */
+.config3d {
+  position: relative;
+  height: calc(100vh - var(--header-h) - var(--footer-h));
+  width: 100%;
+  overflow: hidden;
+}
+
+.config3d canvas {
+  width: 100% !important;
+  height: 100% !important;
 }
