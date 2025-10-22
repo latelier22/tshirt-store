@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2023-10-16", // ✅ version stable actuelle
-})
+// 🟢 Ne pas forcer apiVersion ici
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 export async function POST() {
   try {
@@ -18,7 +17,7 @@ export async function POST() {
               name: "T-shirt Édition Limitée",
               images: ["https://phenomenedeforce.fr/tshirt-noir-face.png"],
             },
-            unit_amount: 2500, // 💶 25,00 €
+            unit_amount: 2500,
           },
           quantity: 1,
         },
@@ -46,6 +45,9 @@ export async function POST() {
     return NextResponse.json({ url: session.url })
   } catch (err) {
     console.error("Erreur Stripe :", err)
-    return NextResponse.json({ error: "Erreur lors de la création du paiement" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Erreur lors de la création du paiement" },
+      { status: 500 }
+    )
   }
 }
