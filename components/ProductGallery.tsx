@@ -4,7 +4,8 @@ import Image from 'next/image'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 
 interface GalleryProps {
-  images: string[]
+  images: string[],
+  interval?: number
 }
 
 export default function ProductGallery({ images }: GalleryProps) {
