@@ -1,53 +1,42 @@
-import { NextResponse } from "next/server"
-import Stripe from "stripe"
+import Stripe from 'stripe'
+import { NextResponse } from 'next/server'
 
-// 🟢 Ne pas forcer apiVersion ici
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
-export async function POST() {
+export async function POST(req: Request) {
   try {
+    const { name, price, image } = await req.json()
+
+    if (!name || !price) {
+      return NextResponse.json({ error: 'Missing product data' }, { status: 400 })
+    }
+
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL || 'https://phenomenedeforce.multimedia-services.fr'
+
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      mode: "payment",
+      payment_method_types: ['card'],
+      mode: 'payment',
       line_items: [
         {
           price_data: {
-            currency: "eur",
+            currency: 'eur',
             product_data: {
-              name: "T-shirt Édition Limitée",
-              images: ["https://phenomenedeforce.fr/tshirt-noir-face.png"],
+              name,
+              images: [image ? `${baseUrl}${image}` : `${baseUrl}/logo.png`],
             },
-            unit_amount: 2500,
+            unit_amount: price,
           },
           quantity: 1,
         },
       ],
-      shipping_address_collection: {
-        allowed_countries: ["FR", "BE", "LU", "CH", "DE", "ES", "IT"],
-      },
-      shipping_options: [
-        {
-          shipping_rate_data: {
-            type: "fixed_amount",
-            fixed_amount: { amount: 600, currency: "eur" },
-            display_name: "Livraison standard (2-4 jours)",
-            delivery_estimate: {
-              minimum: { unit: "business_day", value: 2 },
-              maximum: { unit: "business_day", value: 4 },
-            },
-          },
-        },
-      ],
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/`,
+      success_url: `${baseUrl}/success`,
+      cancel_url: `${baseUrl}/`,
     })
 
     return NextResponse.json({ url: session.url })
   } catch (err) {
-    console.error("Erreur Stripe :", err)
-    return NextResponse.json(
-      { error: "Erreur lors de la création du paiement" },
-      { status: 500 }
-    )
+    console.error('Erreur Stripe :', err)
+    return NextResponse.json({ error: 'Erreur création session' }, { status: 500 })
   }
 }

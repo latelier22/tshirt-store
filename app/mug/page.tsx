@@ -1,8 +1,7 @@
 'use client'
 import ProductGallery from '../../components/ProductGallery'
-import Image from 'next/image'
 
-export default function Home() {
+export default function MugPage() {
   const images = [
     '/mug-orange-face.png',
     '/mug-orange-gauche.png',
@@ -10,7 +9,15 @@ export default function Home() {
   ]
 
   async function handleCheckout() {
-    const res = await fetch('/api/checkout', { method: 'POST' })
+    const res = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Mug couleur Phénomène de force',
+        price: 1500, // 15.00 €
+        image: '/mug-orange-face.png',
+      }),
+    })
     const { url } = await res.json()
     window.location.href = url
   }
@@ -30,17 +37,15 @@ export default function Home() {
             Céramique blanche 330 ml – Impression haute qualité
           </p>
           <p className="text-2xl font-semibold text-gray-900">15,00 €</p>
-          <button
-  onClick={handleCheckout}
-  className="mt-6 bg-orange-500 text-black font-semibold px-8 py-4 rounded-xl hover:bg-orange-400 active:bg-orange-600 transition w-full text-xl shadow-md"
->
-  🛒 Acheter maintenant
-</button>
 
+          <button
+            onClick={handleCheckout}
+            className="mt-6 bg-orange-500 text-black font-semibold px-8 py-4 rounded-xl hover:bg-orange-400 active:bg-orange-600 transition w-full text-xl shadow-md"
+          >
+            🛒 Acheter maintenant
+          </button>
         </div>
       </section>
-
-     
     </main>
   )
 }

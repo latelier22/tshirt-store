@@ -9,8 +9,16 @@ export default function Home() {
     '/tshirt-noir-dos.png',
   ]
 
-  async function handleCheckout() {
-    const res = await fetch('/api/checkout', { method: 'POST' })
+   async function handleCheckout() {
+    const res = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Tshirt noir Phénomène de force',
+        price: 2500, // 25.00 €
+        image: '/tshirt-noir-face.png',
+      }),
+    })
     const { url } = await res.json()
     window.location.href = url
   }

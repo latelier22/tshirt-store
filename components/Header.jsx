@@ -24,10 +24,8 @@ export default function Header() {
 
         {/* Menu principal (desktop) */}
         <nav className="hidden md:flex space-x-8 text-sm font-medium">
-          <Link href="/" className="hover:text-gray-300 transition">Accueil</Link>
-          <Link href="/cgv" className="hover:text-gray-300 transition">CGV</Link>
-          <Link href="/confidentialite" className="hover:text-gray-300 transition">Confidentialité</Link>
-          <Link href="/mentions-legales" className="hover:text-gray-300 transition">Mentions légales</Link>
+          <Link href="/" className="hover:text-gray-300 transition">T-shirt</Link>
+          <Link href="/mug" className="hover:text-gray-300 transition">Mug</Link>
           <Link href="/contact" className="hover:text-gray-300 transition">Contact</Link>
         </nav>
 
