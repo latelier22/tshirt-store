@@ -24,8 +24,9 @@ export default function Header() {
 
         {/* Menu principal (desktop) */}
         <nav className="hidden md:flex space-x-8 text-sm font-medium">
-          <Link href="/" className="hover:text-gray-300 transition">T-shirt</Link>
-          <Link href="/mug" className="hover:text-gray-300 transition">Mug</Link>
+          <Link href="/produit" className="hover:text-gray-300 transition">Nos produits</Link>
+          <Link href="/produit/tshirt" className="hover:text-gray-300 transition">T-shirt</Link>
+          <Link href="/produit/mug" className="hover:text-gray-300 transition">Mug</Link>
           <Link href="/contact" className="hover:text-gray-300 transition">Contact</Link>
         </nav>
 

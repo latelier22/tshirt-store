@@ -1,0 +1,24 @@
+[
+  {
+    "slug": "tshirt",
+    "name": "T-shirt Édition Limitée",
+    "price": 2500,
+    "description": "100% coton bio — Coupe unisexe",
+    "images": [
+      "/tshirt-noir-face.png",
+      "/tshirt-noir-logo.png",
+      "/tshirt-noir-dos.png"
+    ]
+  },
+  {
+    "slug": "mug",
+    "name": "Mug couleur Phénomène de force",
+    "price": 1500,
+    "description": "Céramique blanche 330 ml – Impression haute qualité",
+    "images": [
+      "/mug-orange-face.png",
+      "/mug-orange-gauche.png",
+      "/mug-orange-droite.png"
+    ]
+  }
+]
