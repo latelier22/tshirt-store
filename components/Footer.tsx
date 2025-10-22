@@ -79,7 +79,8 @@ export default function Footer() {
   }
 
   return (
-   <footer className="bg-black text-white fixed bottom-0 left-0 w-full z-40">
+   <footer className="bg-black text-white w-full z-40 md:fixed md:bottom-0 md:left-0">
+
 
       {/* 🎞️ Carrousel horizontal */}
       <div className="relative w-full overflow-hidden py-6 bg-black">
@@ -93,9 +94,10 @@ export default function Footer() {
           {images.map((src, i) => (
             <div
               key={i}
-              className={`w-1/4 shrink-0 relative h-48 md:h-64 cursor-pointer transition-all duration-500 ${
-                i === index + 1 ? 'opacity-100 scale-105' : 'opacity-60 scale-95'
-              }`}
+             className={`w-1/4 shrink-0 relative h-24 sm:h-32 md:h-48 lg:h-64 cursor-pointer transition-all duration-500 ${
+  i === index + 1 ? 'opacity-100 scale-105' : 'opacity-60 scale-95'
+}`}
+
               onClick={() => openModal(i)}
             >
               <Image

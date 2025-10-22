@@ -5,7 +5,6 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 
 interface GalleryProps {
   images: string[],
-  interval?: number
 }
 
 export default function ProductGallery({ images }: GalleryProps) {
@@ -84,46 +83,49 @@ export default function ProductGallery({ images }: GalleryProps) {
 
   return (
     <div className="flex flex-col items-center w-full select-none">
-      {/* Image principale */}
-      <div
-        ref={containerRef}
-        onWheel={handleWheel}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onClick={openModal}
-        className="relative w-full max-w-md h-96 mb-4 overflow-hidden rounded-xl shadow-lg bg-white cursor-zoom-in"
-      >
-        <Image
-          src={images[current]}
-          alt={`Image ${current + 1}`}
-          fill
-          className="object-contain"
-          style={{ transform: `scale(${zoom})` }}
-        />
-      </div>
+      {/* 📱 MOBILE : image + miniatures en colonne à droite */}
+      <div className="flex flex-row md:flex-col items-start justify-center w-full">
+        {/* Image principale */}
+        <div
+          ref={containerRef}
+          onWheel={handleWheel}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onClick={openModal}
+          className="relative w-full max-w-md h-80 md:h-96 mb-4 overflow-hidden rounded-xl shadow-lg bg-white cursor-zoom-in"
+        >
+          <Image
+            src={images[current]}
+            alt={`Image ${current + 1}`}
+            fill
+            className="object-contain"
+            style={{ transform: `scale(${zoom})` }}
+          />
+        </div>
 
-      {/* Miniatures */}
-      <div className="flex space-x-3 justify-center">
-        {images.map((img, index) => (
-          <button
-            key={img}
-            onClick={() => handleClickThumb(index)}
-            className={`relative w-20 h-20 rounded overflow-hidden border-2 ${
-              index === current ? 'border-black' : 'border-transparent'
-            }`}
-          >
-            <Image
-              src={img}
-              alt={`Miniature ${index + 1}`}
-              fill
-              className="object-cover hover:opacity-80 transition"
-            />
-          </button>
-        ))}
+        {/* Miniatures */}
+        <div className="flex flex-col md:flex-row items-center justify-center space-y-2 md:space-y-0 md:space-x-3 ml-3 md:ml-0">
+          {images.map((img, index) => (
+            <button
+              key={img}
+              onClick={() => handleClickThumb(index)}
+              className={`relative w-16 h-16 md:w-20 md:h-20 rounded overflow-hidden border-2 ${
+                index === current ? 'border-black' : 'border-transparent'
+              }`}
+            >
+              <Image
+                src={img}
+                alt={`Miniature ${index + 1}`}
+                fill
+                className="object-cover hover:opacity-80 transition"
+              />
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* 🪟 Modale plein écran */}

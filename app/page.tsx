@@ -1,6 +1,6 @@
 'use client'
-
 import ProductGallery from '../components/ProductGallery'
+import Image from 'next/image'
 
 export default function Home() {
   const images = [
@@ -16,23 +16,27 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 pt-24">
-   
-      <section className="max-w-5xl mx-auto flex flex-col md:flex-row items-center px-6 py-12 space-y-8 md:space-y-0 md:space-x-8">
-        <div className="flex-1">
-          <ProductGallery images={images} interval={3000} />
+    <main className="flex flex-col items-center justify-center bg-gray-50 pt-28 pb-16 px-4">
+      <section className="max-w-6xl w-full flex flex-col md:flex-row items-center justify-between gap-10 md:gap-16">
+        <div className="flex-1 w-full flex justify-center">
+          <ProductGallery images={images} />
         </div>
 
-        <div className="flex-1 text-center md:text-left">
-          <h1 className="text-3xl font-bold mb-2 text-gray-900">T-shirt Édition Limitée</h1>
-          <p className="text-gray-600 mb-4">100% coton bio — Coupe unisexe</p>
-          <p className="text-xl font-semibold mb-6">25,00 €</p>
+        <div className="flex-1 text-center md:text-left space-y-4">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
+            T-shirt Édition Limitée
+          </h1>
+          <p className="text-gray-600 text-base md:text-lg">
+            100% coton bio — Coupe unisexe
+          </p>
+          <p className="text-2xl font-semibold text-gray-900">25,00 €</p>
           <button
-            onClick={handleCheckout}
-            className="bg-black text-white px-8 py-3 rounded-lg hover:bg-gray-800 transition"
-          >
-            Acheter maintenant
-          </button>
+  onClick={handleCheckout}
+  className="mt-6 bg-orange-500 text-black font-semibold px-8 py-4 rounded-xl hover:bg-orange-400 active:bg-orange-600 transition w-full text-xl shadow-md"
+>
+  🛒 Acheter maintenant
+</button>
+
         </div>
       </section>
 
