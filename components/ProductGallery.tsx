@@ -1,43 +1,34 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 
 interface GalleryProps {
   images: string[]
-  interval?: number // en millisecondes
 }
 
-export default function ProductGallery({ images, interval = 3000 }: GalleryProps) {
+export default function ProductGallery({ images }: GalleryProps) {
   const [current, setCurrent] = useState(0)
   const [zoom, setZoom] = useState(1)
-  const [offset, setOffset] = useState({ x: 0, y: 0 })
   const [isDragging, setDragging] = useState(false)
-  const [isModalOpen, setModalOpen] = useState(false)
+  const [offset, setOffset] = useState({ x: 0, y: 0 })
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const [isModalOpen, setModalOpen] = useState(false)
+  const [touches, setTouches] = useState<{ distance: number | null }>({ distance: null })
 
-  // 🔁 Rotation automatique
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % images.length)
-    }, interval)
-    return () => clearInterval(timer)
-  }, [images.length, interval])
-
-  // 🖱️ Zoom molette (image principale)
+  // 🔍 Zoom molette
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault()
     const newZoom = Math.min(Math.max(zoom - e.deltaY * 0.001, 1), 3)
     setZoom(newZoom)
   }
 
-  // 🖐️ Déplacement pendant zoom
+  // 🖐️ Drag pour déplacer quand zoomé
   const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoom === 1) return
     setDragging(true)
     setOffset({ x: e.clientX, y: e.clientY })
   }
-
-  const handleMouseUp = () => setDragging(false)
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || !containerRef.current) return
@@ -48,32 +39,9 @@ export default function ProductGallery({ images, interval = 3000 }: GalleryProps
     setOffset({ x: e.clientX, y: e.clientY })
   }
 
-  // 💡 Gestion du clic miniature
-  const handleClick = (index: number) => {
-    setCurrent(index)
-    setZoom(1)
-  }
+  const handleMouseUp = () => setDragging(false)
 
-  // 🪟 Modale plein écran
-  const openModal = () => setModalOpen(true)
-  const closeModal = () => {
-    setModalOpen(false)
-    setZoom(1)
-  }
-
-  const nextImage = () => {
-    setCurrent((prev) => (prev + 1) % images.length)
-    setZoom(1)
-  }
-
-  const prevImage = () => {
-    setCurrent((prev) => (prev - 1 + images.length) % images.length)
-    setZoom(1)
-  }
-
-  // 📱 Zoom tactile (pinch)
-  const [touches, setTouches] = useState<{ distance: number | null }>({ distance: null })
-
+  // 🤏 Pinch zoom (mobile)
   const handleTouchMove = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
       const dist = Math.hypot(
@@ -91,8 +59,30 @@ export default function ProductGallery({ images, interval = 3000 }: GalleryProps
 
   const handleTouchEnd = () => setTouches({ distance: null })
 
+  // 🔁 Navigation images
+  const nextImage = () => {
+    setCurrent((prev) => (prev + 1) % images.length)
+    setZoom(1)
+  }
+
+  const prevImage = () => {
+    setCurrent((prev) => (prev - 1 + images.length) % images.length)
+    setZoom(1)
+  }
+
+  const handleClickThumb = (index: number) => {
+    setCurrent(index)
+    setZoom(1)
+  }
+
+  const openModal = () => setModalOpen(true)
+  const closeModal = () => {
+    setModalOpen(false)
+    setZoom(1)
+  }
+
   return (
-    <div className="flex flex-col items-center w-full">
+    <div className="flex flex-col items-center w-full select-none">
       {/* Image principale */}
       <div
         ref={containerRef}
@@ -101,17 +91,16 @@ export default function ProductGallery({ images, interval = 3000 }: GalleryProps
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
-        onClick={openModal}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className="relative w-full max-w-md h-96 mb-4 overflow-hidden rounded-xl shadow-lg bg-white cursor-zoom-in select-none"
+        onClick={openModal}
+        className="relative w-full max-w-md h-96 mb-4 overflow-hidden rounded-xl shadow-lg bg-white cursor-zoom-in"
       >
         <Image
-          key={images[current]}
           src={images[current]}
           alt={`Image ${current + 1}`}
           fill
-          className="object-contain transition-transform duration-300 ease-in-out"
+          className="object-contain"
           style={{ transform: `scale(${zoom})` }}
         />
       </div>
@@ -121,7 +110,7 @@ export default function ProductGallery({ images, interval = 3000 }: GalleryProps
         {images.map((img, index) => (
           <button
             key={img}
-            onClick={() => handleClick(index)}
+            onClick={() => handleClickThumb(index)}
             className={`relative w-20 h-20 rounded overflow-hidden border-2 ${
               index === current ? 'border-black' : 'border-transparent'
             }`}
@@ -139,7 +128,7 @@ export default function ProductGallery({ images, interval = 3000 }: GalleryProps
       {/* 🪟 Modale plein écran */}
       {isModalOpen && (
         <div
-          className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 select-none"
+          className="fixed inset-0 bg-black/90 flex items-center justify-center z-50"
           onClick={closeModal}
         >
           <button
@@ -153,9 +142,13 @@ export default function ProductGallery({ images, interval = 3000 }: GalleryProps
           </button>
 
           <div
-            className="relative w-[90vw] h-[80vh] max-w-5xl overflow-hidden"
+            className="relative w-[90vw] h-[80vh] max-w-5xl overflow-hidden cursor-grab"
             onClick={(e) => e.stopPropagation()}
             onWheel={handleWheel}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
@@ -163,9 +156,11 @@ export default function ProductGallery({ images, interval = 3000 }: GalleryProps
               src={images[current]}
               alt={`Image ${current + 1}`}
               fill
-              className="object-contain transition-transform duration-300 ease-in-out"
+              className="object-contain"
               style={{ transform: `scale(${zoom})` }}
             />
+
+            {/* Flèches navigation */}
             <button
               onClick={(e) => {
                 e.stopPropagation()
@@ -175,6 +170,7 @@ export default function ProductGallery({ images, interval = 3000 }: GalleryProps
             >
               <ChevronLeft size={40} />
             </button>
+
             <button
               onClick={(e) => {
                 e.stopPropagation()

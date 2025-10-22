@@ -2,6 +2,7 @@
 import Link from "next/link"
 import { useState } from "react"
 import { Menu, X } from "lucide-react"
+import LiensReseaux from "./LiensResaux"
 
 export default function Header() {
   const [open, setOpen] = useState(false)
@@ -45,9 +46,7 @@ export default function Header() {
         <div className="md:hidden bg-black border-t border-gray-700">
           <nav className="flex flex-col space-y-3 px-6 py-4 text-sm font-medium">
             <Link href="/" onClick={() => setOpen(false)} className="hover:text-gray-300 transition">Accueil</Link>
-            <Link href="/cgv" onClick={() => setOpen(false)} className="hover:text-gray-300 transition">CGV</Link>
-            <Link href="/confidentialite" onClick={() => setOpen(false)} className="hover:text-gray-300 transition">Confidentialité</Link>
-            <Link href="/mentions-legales" onClick={() => setOpen(false)} className="hover:text-gray-300 transition">Mentions légales</Link>
+            <LiensReseaux />
             <Link href="/contact" onClick={() => setOpen(false)} className="hover:text-gray-300 transition">Contact</Link>
           </nav>
         </div>

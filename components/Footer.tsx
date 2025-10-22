@@ -2,8 +2,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { FaFacebookF, FaInstagram, FaTiktok } from 'react-icons/fa'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import LiensReseaux from './LiensResaux'
 
 export default function Footer() {
   const images = [
@@ -116,9 +116,7 @@ export default function Footer() {
           <p className="text-sm text-gray-300">© {new Date().getFullYear()} Tous droits réservés</p>
         </div>
         <div className="flex space-x-6 text-2xl">
-          <Link href="https://www.facebook.com/phenomenedeforce" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 transition"><FaFacebookF /></Link>
-          <Link href="https://www.instagram.com/phenomenedeforce" target="_blank" rel="noopener noreferrer" className="hover:text-pink-500 transition"><FaInstagram /></Link>
-          <Link href="https://www.tiktok.com/@phenomenedeforce" target="_blank" rel="noopener noreferrer" className="hover:text-gray-200 transition"><FaTiktok /></Link>
+          <LiensReseaux/>
         </div>
         <nav className="space-x-6 text-sm font-medium">
           <Link href="/cgv" className="hover:text-gray-700">CGV</Link>
