@@ -33,7 +33,7 @@ export default function TeeConfigurator() {
   // ── ÉTATS CONFIG ──────────────────────────────────────────────────────────────
   const [color, setColor] = useState<TeeColor>('black')
   const [size, setSize] = useState<TeeSize>('M')
-  const [text, setText] = useState('PHÉNOMÈNE DE FORCE')
+  const [text, setText] = useState('Multimédia services')
   const [textColor, setTextColor] = useState('#ffffff')
   const [fontFamily, setFontFamily] = useState('Inter, system-ui, sans-serif')
   const [fontSize, setFontSize] = useState(42)

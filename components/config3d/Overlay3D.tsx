@@ -65,7 +65,7 @@ export default function Overlay3D() {
                 >
                   <p className="mb-6 leading-relaxed">
                     Personnaliser votre T-shirt.{' '}
-                    <strong> "Phénomène de force"</strong> et visualise le en 3D.
+                    <strong> "Multimédia services"</strong> et visualise le en 3D.
                   </p>
                   <button
                     style={{ background: snap.color }}

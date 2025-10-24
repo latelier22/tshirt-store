@@ -14,19 +14,19 @@ export default function Header() {
         <Link href="/" className="flex items-center space-x-3">
           <img
             src="/logo.png"
-            alt="Phénomène de Force"
+            alt="Multimédia services"
             className="h-10 w-auto"
           />
           <h1 className="text-lg md:text-xl font-bold tracking-wide">
-            PHÉNOMÈNE DE FORCE
+            Multimédia services
           </h1>
         </Link>
 
         {/* Menu principal (desktop) */}
         <nav className="hidden md:flex space-x-8 text-sm font-medium">
-          <Link href="/produit" className="hover:text-gray-300 transition">Nos produits</Link>
-          <Link href="/produit/tshirt" className="hover:text-gray-300 transition">T-shirt</Link>
-          <Link href="/produit/mug" className="hover:text-gray-300 transition">Mug</Link>
+          <Link href="/produits" className="hover:text-gray-300 transition">Nos produits</Link>
+          {/* <Link href="/produit/tshirt" className="hover:text-gray-300 transition">T-shirt</Link>
+          <Link href="/produit/mug" className="hover:text-gray-300 transition">Mug</Link> */}
           <Link href="/contact" className="hover:text-gray-300 transition">Contact</Link>
         </nav>
 

@@ -11,7 +11,7 @@ export default function MentionsLegales() {
         <p>
           Conformément aux dispositions des articles 6-III et 19 de la loi n°2004-575 du 21 juin 2004 pour la
           confiance dans l’économie numérique (LCEN), il est précisé aux utilisateurs du site{" "}
-          <strong>phenomenedeforce.fr</strong> l’identité des différents intervenants dans le cadre de sa
+          <strong>multimedia-servicesdeforce.fr</strong> l’identité des différents intervenants dans le cadre de sa
           réalisation et de son suivi.
         </p>
       </section>
@@ -20,7 +20,7 @@ export default function MentionsLegales() {
       <div className="bg-gray-50 border-l-4 border-black p-4">
         <p>
           <strong>Entreprise individuelle MULTIMEDIA SERVICES</strong>  
-          exploitant la marque <strong>PHÉNOMÈNE DE FORCE</strong>
+          exploitant la marque <strong>Multimédia services</strong>
         </p>
         <p>Gérant : <strong>GOURDEL IVAN</strong></p>
         <p>Adresse : 7 Boulevard de la Gare, 22600 Loudéac, France</p>
@@ -28,8 +28,8 @@ export default function MentionsLegales() {
         <p>Numéro de TVA : FR16985382423</p>
         <p>
           Contact :{" "}
-          <a href="mailto:contact@phenomenedeforce.fr" className="text-blue-600 hover:underline">
-            contact@phenomenedeforce.fr
+          <a href="mailto:contact@multimedia-servicesdeforce.fr" className="text-blue-600 hover:underline">
+            contact@multimedia-servicesdeforce.fr
           </a>
         </p>
       </div>
@@ -56,7 +56,7 @@ export default function MentionsLegales() {
 
       <h2 className="text-2xl font-semibold mt-8 mb-2">4. Propriété intellectuelle</h2>
       <p>
-        L’ensemble des éléments du site <strong>phenomenedeforce.fr</strong> (textes, images, graphismes,
+        L’ensemble des éléments du site <strong>multimedia-servicesdeforce.fr</strong> (textes, images, graphismes,
         logo, vidéos, icônes, etc.) sont la propriété exclusive de l’entreprise individuelle MULTIMEDIA SERVICES
         ou de ses partenaires.
       </p>
@@ -74,15 +74,15 @@ export default function MentionsLegales() {
       </p>
       <p>
         Pour toute demande relative à vos données personnelles, vous pouvez écrire à :{" "}
-        <a href="mailto:contact@phenomenedeforce.fr" className="text-blue-600 hover:underline">
-          contact@phenomenedeforce.fr
+        <a href="mailto:contact@multimedia-servicesdeforce.fr" className="text-blue-600 hover:underline">
+          contact@multimedia-servicesdeforce.fr
         </a>
       </p>
 
       <h2 className="text-2xl font-semibold mt-8 mb-2">6. Responsabilité</h2>
       <p>
         L’entreprise individuelle MULTIMEDIA SERVICES ne pourra être tenue responsable des dommages directs ou
-        indirects causés au matériel de l’utilisateur lors de l’accès au site <strong>phenomenedeforce.fr</strong>.
+        indirects causés au matériel de l’utilisateur lors de l’accès au site <strong>multimedia-servicesdeforce.fr</strong>.
       </p>
       <p>
         Le site utilise des technologies modernes et sécurisées (HTTPS, Stripe pour les paiements). L’utilisateur
@@ -92,7 +92,7 @@ export default function MentionsLegales() {
 
       <h2 className="text-2xl font-semibold mt-8 mb-2">7. Liens externes</h2>
       <p>
-        Le site peut contenir des liens vers d’autres sites internet. PHÉNOMÈNE DE FORCE n’exerce aucun contrôle
+        Le site peut contenir des liens vers d’autres sites internet. Multimédia services n’exerce aucun contrôle
         sur le contenu de ces sites et ne saurait être tenu responsable de leur contenu ou de leur politique de
         confidentialité.
       </p>
@@ -110,7 +110,7 @@ export default function MentionsLegales() {
       </p>
 
       <p className="text-center text-sm text-gray-500 mt-8">
-        © {new Date().getFullYear()} PHÉNOMÈNE DE FORCE – Tous droits réservés.
+        © {new Date().getFullYear()} Multimédia services – Tous droits réservés.
       </p>
     </main>
   )

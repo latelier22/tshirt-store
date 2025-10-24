@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     }
 
     const baseUrl =
-      process.env.NEXT_PUBLIC_BASE_URL || 'https://phenomenedeforce.multimedia-services.fr'
+      process.env.NEXT_PUBLIC_BASE_URL || 'https://multimedia-servicesdeforce.multimedia-services.fr'
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],

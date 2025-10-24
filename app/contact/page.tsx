@@ -18,16 +18,16 @@ export default function Contact() {
         Une question sur nos produits ou votre commande ?  
         Vous pouvez nous écrire directement à <br />
         <a
-          href="mailto:contact@phenomenedeforce.fr"
+          href="mailto:contact@multimedia-servicesdeforce.fr"
           className="text-blue-600 hover:underline"
         >
-          contact@phenomenedeforce.fr
+          contact@multimedia-servicesdeforce.fr
         </a>{' '}
         ou utiliser le formulaire ci-dessous.
       </p>
 
       <form
-        action={`mailto:contact@phenomenedeforce.fr`}
+        action={`mailto:contact@multimedia-servicesdeforce.fr`}
         method="POST"
         encType="text/plain"
         className="bg-gray-50 p-6 rounded-lg shadow-md space-y-4"
@@ -89,7 +89,7 @@ export default function Contact() {
 
       <section className="mt-10 bg-white p-6 rounded-lg shadow-sm">
         <h2 className="text-2xl font-semibold mb-2">Coordonnées</h2>
-        <p><strong>PHÉNOMÈNE DE FORCE</strong></p>
+        <p><strong>Multimédia services</strong></p>
         <p>Entreprise individuelle MULTIMEDIA SERVICES</p>
         <p>7 Boulevard de la Gare, 22600 Loudéac, France</p>
         <p>SIREN : 985 382 423 – SIRET : 985 382 423 00038</p>
@@ -97,10 +97,10 @@ export default function Contact() {
         <p>
           📧{' '}
           <a
-            href="mailto:contact@phenomenedeforce.fr"
+            href="mailto:contact@multimedia-servicesdeforce.fr"
             className="text-blue-600 hover:underline"
           >
-            contact@phenomenedeforce.fr
+            contact@multimedia-servicesdeforce.fr
           </a>
         </p>
       </section>
