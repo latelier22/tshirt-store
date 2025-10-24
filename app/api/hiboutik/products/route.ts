@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * Proxy Hiboutik (server-side) vers /api/products/search/ :
- * - Auth Basic (login = HIBOUTIK_LOGIN, pass = HIBOUTIK_API_KEY)
+ * Proxy Hiboutik vers /api/products/search/ :
+ * - Basic Auth (login = HIBOUTIK_LOGIN, pass = HIBOUTIK_API_KEY)
  * - Force product_display_www=1 par défaut
- * - Propage tous les query params
  * - Supporte pagination via ?from=0&to=99 -> Range: items=0-99
  */
 export async function GET(req: NextRequest) {
@@ -18,10 +17,10 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
 
-  // Endpoint SEARCH qui respecte product_display_www
+  // Endpoint SEARCH (respecte product_display_www)
   const upstream = new URL(`https://${account}.hiboutik.com/api/products/search/`);
 
-  // Copie tous les paramètres de la requête
+  // Copie tous les query params
   for (const [k, v] of searchParams.entries()) upstream.searchParams.set(k, v);
 
   // Force product_display_www=1 sauf si déjà fourni
@@ -29,24 +28,28 @@ export async function GET(req: NextRequest) {
     upstream.searchParams.set("product_display_www", "1");
   }
 
-  // Pagination via Range header si from/to fournis
+  // Pagination via Range si from/to fournis
   const from = searchParams.get("from");
   const to = searchParams.get("to");
-  const rangeHeader = from !== null && to !== null ? { Range: `items=${from}-${to}` } : {};
 
-  // Basic Auth (compatible Node/Edge)
+  // -----  ✅ FIX TypeScript: construire un objet headers simple
   const token =
     (globalThis as any).Buffer
       ? Buffer.from(`${login}:${apiKey}`).toString("base64")
       : (typeof btoa !== "undefined" ? btoa(`${login}:${apiKey}`) : "");
 
+  const headersObj: Record<string, string> = {
+    Accept: "application/json",
+    Authorization: `Basic ${token}`,
+  };
+  if (from !== null && to !== null) {
+    headersObj["Range"] = `items=${from}-${to}`;
+  }
+  // -----------------------------------------------
+
   const res = await fetch(upstream.toString(), {
     method: "GET",
-    headers: {
-      "Accept": "application/json",
-      "Authorization": `Basic ${token}`,
-      ...rangeHeader,
-    },
+    headers: headersObj, // ✅ plus de spread d’union
     cache: "no-store",
   });
 
