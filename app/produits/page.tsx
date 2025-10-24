@@ -43,7 +43,7 @@ export default function HiboutikGridPage() {
 
   return (
     <main className="mx-auto max-w-7xl mt-32 p-6">
-      <h1 className="text-2xl font-semibold mb-4">Produits (display_www=1)</h1>
+      <h1 className="text-2xl font-semibold mb-4">Nos produits</h1>
 
       {loading && <p>Chargement…</p>}
       {err && <p className="text-red-600">Erreur : {err}</p>}
