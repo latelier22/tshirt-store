@@ -1,15 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 type HiboutikProduct = {
   product_id: number;
   product_model?: string;
-  product_price?: string;           // "249.00"
-  product_discount_price?: string;  // "0.00"
+  product_price?: string;
+  product_discount_price?: string;
   stock_available?: 0 | 1;
   product_barcode?: string;
+  images?: string[];
+  thumb?: string; // petite (mini) si dispo
+  image?: string; // grande (big) si dispo
 };
 
 function formatPrice(p?: string) {
@@ -25,9 +29,8 @@ export default function HiboutikGridPage() {
   useEffect(() => {
     (async () => {
       try {
-        // Le proxy force déjà product_display_www=1, mais on le met explicitement
         const res = await fetch(
-          "/api/hiboutik/products?order_by=product_id&sort=ASC&from=0&to=99&product_display_www=1",
+          "/api/hiboutik/products/grid?order_by=product_id&sort=ASC&from=0&to=99",
           { cache: "no-store" }
         );
         if (!res.ok) throw new Error(await res.text());
@@ -42,7 +45,7 @@ export default function HiboutikGridPage() {
   }, []);
 
   return (
-    <main className="mx-auto max-w-7xl mt-32 p-6">
+    <main className="mx-auto max-w-7xl mt-32 mb-96 p-6">
       <h1 className="text-2xl font-semibold mb-4">Nos produits</h1>
 
       {loading && <p>Chargement…</p>}
@@ -55,18 +58,39 @@ export default function HiboutikGridPage() {
             Number(p.product_discount_price) > 0;
           const finalPrice = hasPromo ? p.product_discount_price : p.product_price;
 
+          const img = p.image || p.thumb;
+
           return (
             <Link
               key={p.product_id}
               href={`/produits/${p.product_id}`}
               className="group block border rounded-2xl p-4 hover:shadow-lg transition-shadow"
             >
-              {/* Placeholder image / logo éventuel si tu en as un */}
-              <div className="aspect-[4/3] bg-gray-100 rounded-xl mb-3 flex items-center justify-center">
-                <span className="opacity-40 text-sm">Image</span>
+              <div className="aspect-4/3 rounded-xl mb-3 relative overflow-hidden bg-gray-100">
+                {img ? (
+                  <Image
+                    src={img}
+                    alt={p.product_model ?? "Produit"}
+                    fill
+                    sizes="
+                      (max-width: 640px) 50vw,
+                      (max-width: 1024px) 33vw,
+                      (max-width: 1280px) 25vw,
+                      20vw
+                    "
+                    placeholder={p.thumb ? "blur" : "empty"}
+                    blurDataURL={p.thumb}
+                    className="object-cover"
+                    priority={false}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="opacity-40 text-sm">Image</span>
+                  </div>
+                )}
               </div>
 
-              <h2 className="text-sm font-medium line-clamp-2 min-h-[3rem]">
+              <h2 className="text-sm font-medium line-clamp-2 min-h-12">
                 {p.product_model || "(Sans nom)"}
               </h2>
 
@@ -76,23 +100,6 @@ export default function HiboutikGridPage() {
                   <div className="text-sm line-through opacity-60">
                     {formatPrice(p.product_price)}
                   </div>
-                )}
-              </div>
-
-              <div className="mt-2 flex items-center justify-between">
-                <span
-                  className={
-                    p.stock_available
-                      ? "text-xs px-2 py-1 rounded-full bg-green-100 text-green-700"
-                      : "text-xs px-2 py-1 rounded-full bg-gray-200 text-gray-700"
-                  }
-                >
-                  {p.stock_available ? "En stock" : "Rupture"}
-                </span>
-                {p.product_barcode && (
-                  <span className="text-[10px] opacity-60">
-                    {p.product_barcode}
-                  </span>
                 )}
               </div>
             </Link>
