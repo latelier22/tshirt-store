@@ -73,7 +73,7 @@ export default async function ProduitPage({ params }: { params: Promise<{ id: st
             </span>
           </div>
 
-          {product.product_barcode && <p className="mt-2 text-sm opacity-70">EAN : {product.product_barcode}</p>}
+          {/* {product.product_barcode && <p className="mt-2 text-sm opacity-70">EAN : {product.product_barcode}</p>} */}
           {product.product_desc && product.product_desc.trim() !== "" && <p className="mt-4 whitespace-pre-wrap">{product.product_desc}</p>}
 
           <div className="mt-6">
