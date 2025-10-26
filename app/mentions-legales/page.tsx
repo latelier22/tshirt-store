@@ -11,7 +11,7 @@ export default function MentionsLegales() {
         <p>
           Conformément aux dispositions des articles 6-III et 19 de la loi n°2004-575 du 21 juin 2004 pour la
           confiance dans l’économie numérique (LCEN), il est précisé aux utilisateurs du site{" "}
-          <strong>multimedia-servicesdeforce.fr</strong> l’identité des différents intervenants dans le cadre de sa
+          <strong>multimedia-services.fr</strong> l’identité des différents intervenants dans le cadre de sa
           réalisation et de son suivi.
         </p>
       </section>
@@ -28,8 +28,8 @@ export default function MentionsLegales() {
         <p>Numéro de TVA : FR16985382423</p>
         <p>
           Contact :{" "}
-          <a href="mailto:contact@multimedia-servicesdeforce.fr" className="text-blue-600 hover:underline">
-            contact@multimedia-servicesdeforce.fr
+          <a href="mailto:contact@multimedia-services.fr" className="text-blue-600 hover:underline">
+            contact@multimedia-services.fr
           </a>
         </p>
       </div>
@@ -56,7 +56,7 @@ export default function MentionsLegales() {
 
       <h2 className="text-2xl font-semibold mt-8 mb-2">4. Propriété intellectuelle</h2>
       <p>
-        L’ensemble des éléments du site <strong>multimedia-servicesdeforce.fr</strong> (textes, images, graphismes,
+        L’ensemble des éléments du site <strong>multimedia-services.fr</strong> (textes, images, graphismes,
         logo, vidéos, icônes, etc.) sont la propriété exclusive de l’entreprise individuelle MULTIMEDIA SERVICES
         ou de ses partenaires.
       </p>
@@ -74,15 +74,15 @@ export default function MentionsLegales() {
       </p>
       <p>
         Pour toute demande relative à vos données personnelles, vous pouvez écrire à :{" "}
-        <a href="mailto:contact@multimedia-servicesdeforce.fr" className="text-blue-600 hover:underline">
-          contact@multimedia-servicesdeforce.fr
+        <a href="mailto:contact@multimedia-services.fr" className="text-blue-600 hover:underline">
+          contact@multimedia-services.fr
         </a>
       </p>
 
       <h2 className="text-2xl font-semibold mt-8 mb-2">6. Responsabilité</h2>
       <p>
         L’entreprise individuelle MULTIMEDIA SERVICES ne pourra être tenue responsable des dommages directs ou
-        indirects causés au matériel de l’utilisateur lors de l’accès au site <strong>multimedia-servicesdeforce.fr</strong>.
+        indirects causés au matériel de l’utilisateur lors de l’accès au site <strong>multimedia-services.fr</strong>.
       </p>
       <p>
         Le site utilise des technologies modernes et sécurisées (HTTPS, Stripe pour les paiements). L’utilisateur

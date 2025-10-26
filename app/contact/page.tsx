@@ -18,16 +18,16 @@ export default function Contact() {
         Une question sur nos produits ou votre commande ?  
         Vous pouvez nous écrire directement à <br />
         <a
-          href="mailto:contact@multimedia-servicesdeforce.fr"
+          href="mailto:contact@multimedia-services.fr"
           className="text-blue-600 hover:underline"
         >
-          contact@multimedia-servicesdeforce.fr
+          contact@multimedia-services.fr
         </a>{' '}
         ou utiliser le formulaire ci-dessous.
       </p>
 
       <form
-        action={`mailto:contact@multimedia-servicesdeforce.fr`}
+        action={`mailto:contact@multimedia-services.fr`}
         method="POST"
         encType="text/plain"
         className="bg-gray-50 p-6 rounded-lg shadow-md space-y-4"
@@ -97,10 +97,10 @@ export default function Contact() {
         <p>
           📧{' '}
           <a
-            href="mailto:contact@multimedia-servicesdeforce.fr"
+            href="mailto:contact@multimedia-services.fr"
             className="text-blue-600 hover:underline"
           >
-            contact@multimedia-servicesdeforce.fr
+            contact@multimedia-services.fr
           </a>
         </p>
       </section>

@@ -12,7 +12,7 @@ export default function Confidentialite() {
       <section className="space-y-4">
         <p>
           La présente politique de confidentialité a pour objectif d’informer les utilisateurs du site{" "}
-          <strong>multimedia-servicesdeforce.fr</strong> sur la manière dont leurs données personnelles sont collectées,
+          <strong>multimedia-services.fr</strong> sur la manière dont leurs données personnelles sont collectées,
           utilisées et protégées par{" "}
           <strong>l’entreprise individuelle MULTIMEDIA SERVICES – GOURDEL IVAN</strong>, exploitant la marque{" "}
           <strong>Multimédia services</strong>.
@@ -26,10 +26,10 @@ export default function Confidentialite() {
             <br />
             📧{" "}
             <a
-              href="mailto:contact@multimedia-servicesdeforce.fr"
+              href="mailto:contact@multimedia-services.fr"
               className="text-blue-600 hover:underline"
             >
-              contact@multimedia-servicesdeforce.fr
+              contact@multimedia-services.fr
             </a>
           </p>
         </div>
@@ -103,10 +103,10 @@ export default function Confidentialite() {
       <p>
         Pour exercer ces droits, contactez :{" "}
         <a
-          href="mailto:contact@multimedia-servicesdeforce.fr"
+          href="mailto:contact@multimedia-services.fr"
           className="text-blue-600 hover:underline"
         >
-          contact@multimedia-servicesdeforce.fr
+          contact@multimedia-services.fr
         </a>.
       </p>
 
@@ -140,8 +140,8 @@ export default function Confidentialite() {
         <p><strong>GOURDEL IVAN – MULTIMEDIA SERVICES</strong></p>
         <p>7 Boulevard de la Gare, 22600 Loudéac, France</p>
         <p>📧{" "}
-          <a href="mailto:contact@multimedia-servicesdeforce.fr" className="text-blue-600 hover:underline">
-            contact@multimedia-servicesdeforce.fr
+          <a href="mailto:contact@multimedia-services.fr" className="text-blue-600 hover:underline">
+            contact@multimedia-services.fr
           </a>
         </p>
       </div>

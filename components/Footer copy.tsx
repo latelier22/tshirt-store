@@ -68,7 +68,7 @@ export default function Footer() {
             <FaFacebookF />
           </Link>
           <Link
-            href="https://www.instagram.com/multimedia-servicesdeforce"
+            href="https://www.instagram.com/multimedia-services"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-pink-500 transition"
@@ -76,7 +76,7 @@ export default function Footer() {
             <FaInstagram />
           </Link>
           <Link
-            href="https://www.tiktok.com/@multimedia-servicesdeforce"
+            href="https://www.tiktok.com/@multimedia-services"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-gray-200 transition"
