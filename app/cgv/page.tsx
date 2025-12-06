@@ -9,24 +9,24 @@ export default function CGV() {
       <section className="space-y-4">
         <p>
           Les présentes Conditions Générales de Vente (ci-après « CGV ») régissent l’ensemble des ventes
-          conclues sur le site <strong>phenomenedeforce.fr</strong>, exploité par :
+          conclues sur le site <strong>multimedia-services.fr</strong>, exploité par :
         </p>
 
         <div className="bg-gray-50 border-l-4 border-black p-4">
           <p><strong>Entreprise individuelle MULTIMEDIA SERVICES</strong></p>
-          <p>Exploitant les droits de la marque <strong>PHÉNOMÈNE DE FORCE</strong> en France et en Europe</p>
+          <p>Exploitant les droits de la marque <strong>Multimédia services</strong> en France et en Europe</p>
           <p>Gérant : <strong>GOURDEL IVAN</strong></p>
           <p>Adresse : <strong>7 Boulevard de la Gare, 22600 Loudéac, France</strong></p>
           <p>SIREN : <strong>985 382 423</strong> — SIRET : <strong>985 382 423 00038</strong></p>
           <p>Numéro de TVA intracommunautaire : <strong>FR16985382423</strong></p>
-          <p>Contact : <a href="mailto:contact@phenomenedeforce.fr" className="text-blue-600 hover:underline">contact@phenomenedeforce.fr</a></p>
+          <p>Contact : <a href="mailto:contact@multimedia-services.fr" className="text-blue-600 hover:underline">contact@multimedia-services.fr</a></p>
         </div>
       </section>
 
       <h2 className="text-2xl font-semibold mt-8 mb-2">1. Objet</h2>
       <p>
         Les présentes CGV définissent les droits et obligations du vendeur et du client dans le cadre de la
-        vente en ligne de t-shirts proposés sur le site <strong>phenomenedeforce.fr</strong>.
+        vente en ligne de t-shirts proposés sur le site <strong>multimedia-services.fr</strong>.
       </p>
 
       <h2 className="text-2xl font-semibold mt-8 mb-2">2. Produits</h2>
@@ -93,7 +93,7 @@ export default function CGV() {
 
       <h2 className="text-2xl font-semibold mt-8 mb-2">9. Responsabilité</h2>
       <p>
-        PHÉNOMÈNE DE FORCE ne saurait être tenu responsable des retards, pertes, ou dommages imputables aux
+        Multimédia services ne saurait être tenu responsable des retards, pertes, ou dommages imputables aux
         transporteurs, ni de l’usage inapproprié ou de l’entretien incorrect du produit.
       </p>
 
@@ -110,8 +110,8 @@ export default function CGV() {
         relation client. Elles ne sont jamais revendues à des tiers.
         Conformément au RGPD, le client dispose d’un droit d’accès, de rectification et de suppression de ses
         données en écrivant à :{' '}
-        <a href="mailto:contact@phenomenedeforce.fr" className="text-blue-600 hover:underline">
-          contact@phenomenedeforce.fr
+        <a href="mailto:contact@multimedia-services.fr" className="text-blue-600 hover:underline">
+          contact@multimedia-services.fr
         </a>.
       </p>
 
@@ -128,10 +128,10 @@ export default function CGV() {
       </p>
 
       <div className="bg-gray-50 border-l-4 border-black p-4">
-        <p><strong>PHÉNOMÈNE DE FORCE</strong></p>
+        <p><strong>Multimédia services</strong></p>
         <p>Entreprise individuelle MULTIMEDIA SERVICES</p>
         <p>7 Boulevard de la Gare, 22600 Loudéac</p>
-        <p>📧 <a href="mailto:contact@phenomenedeforce.fr" className="text-blue-600 hover:underline">contact@phenomenedeforce.fr</a></p>
+        <p>📧 <a href="mailto:contact@multimedia-services.fr" className="text-blue-600 hover:underline">contact@multimedia-services.fr</a></p>
       </div>
     </main>
   )

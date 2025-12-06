@@ -7,14 +7,14 @@ import { FaFacebookF, FaInstagram, FaTiktok } from 'react-icons/fa'
 export default function Footer() {
   // 👉 Liste d’images à faire défiler dans le carrousel
   const images = [
-    '/galerie/phenomene1.png',
-    '/galerie/phenomene2.png',
-    '/galerie/phenomene3.png',
-    '/galerie/phenomene4.png',
-    '/galerie/phenomene5.png',
-    '/galerie/phenomene6.png',
-    '/galerie/phenomene7.png',
-    '/galerie/phenomene8.png'
+    '/galerie/multimedia-services1.png',
+    '/galerie/multimedia-services2.png',
+    '/galerie/multimedia-services3.png',
+    '/galerie/multimedia-services4.png',
+    '/galerie/multimedia-services5.png',
+    '/galerie/multimedia-services6.png',
+    '/galerie/multimedia-services7.png',
+    '/galerie/multimedia-services8.png'
   ]
 
   const [current, setCurrent] = useState(0)
@@ -54,7 +54,7 @@ export default function Footer() {
       {/* 🌐 Réseaux sociaux */}
       <div className="flex flex-col md:flex-row items-center justify-between px-6 py-6 max-w-6xl mx-auto">
         <div className="text-center md:text-left mb-4 md:mb-0">
-          <h2 className="text-lg font-bold tracking-wide">PHÉNOMÈNE DE FORCE</h2>
+          <h2 className="text-lg font-bold tracking-wide">Multimédia services</h2>
           <p className="text-sm text-gray-300">© {new Date().getFullYear()} Tous droits réservés</p>
         </div>
 
@@ -68,7 +68,7 @@ export default function Footer() {
             <FaFacebookF />
           </Link>
           <Link
-            href="https://www.instagram.com/phenomenedeforce"
+            href="https://www.instagram.com/multimedia-services"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-pink-500 transition"
@@ -76,7 +76,7 @@ export default function Footer() {
             <FaInstagram />
           </Link>
           <Link
-            href="https://www.tiktok.com/@phenomenedeforce"
+            href="https://www.tiktok.com/@multimedia-services"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-gray-200 transition"

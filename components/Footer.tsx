@@ -7,14 +7,14 @@ import LiensReseaux from './LiensResaux'
 
 export default function Footer() {
   const images = [
-    '/galerie/phenomene1.webp',
-    '/galerie/phenomene2.webp',
-    '/galerie/phenomene3.webp',
-    '/galerie/phenomene4.webp',
-    '/galerie/phenomene5.webp',
-    '/galerie/phenomene6.webp',
-    '/galerie/phenomene7.webp',
-    '/galerie/phenomene8.webp'
+    '/galerie/multimedia-services1.webp',
+    '/galerie/multimedia-services2.webp',
+    '/galerie/multimedia-services3.webp',
+    '/galerie/multimedia-services4.webp',
+    '/galerie/multimedia-services5.webp',
+    '/galerie/multimedia-services6.webp',
+    '/galerie/multimedia-services7.webp',
+    '/galerie/multimedia-services8.webp'
   ]
 
   const [index, setIndex] = useState(0)
@@ -114,7 +114,7 @@ export default function Footer() {
       {/* 🌐 Réseaux sociaux */}
       <div className="flex flex-col md:flex-row items-center justify-between px-6 py-6 max-w-6xl mx-auto">
         <div className="text-center md:text-left mb-4 md:mb-0">
-          <h2 className="text-lg font-bold tracking-wide">PHÉNOMÈNE DE FORCE</h2>
+          <h2 className="text-lg font-bold tracking-wide">Multimédia services</h2>
           <p className="text-sm text-gray-300">© {new Date().getFullYear()} Tous droits réservés</p>
         </div>
         <div className="flex space-x-6 text-2xl">

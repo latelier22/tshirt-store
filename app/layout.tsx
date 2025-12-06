@@ -9,8 +9,8 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "PHÉNOMÈNE DE FORCE",
-  description: "T-shirts édition limitée – PHÉNOMÈNE DE FORCE",
+  title: "Multimédia services",
+  description: "T-shirts édition limitée – Multimédia services",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

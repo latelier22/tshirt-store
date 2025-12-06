@@ -29,7 +29,7 @@ export function Overlay() {
                 initial={{ x: 100, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ type: 'spring', damping: 5, stiffness: 40, restDelta: 0.001, duration: 0.3 }}>
-                <h1>Phénomène de force</h1>
+                <h1>Multimédia services</h1>
               </motion.div>
               <div className="support--content">
                 <motion.div
