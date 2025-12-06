@@ -1,32 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
+// Utilise la version du SDK installé
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 // Construit une base URL fiable (prod Vercel, preview, local)
 function buildBaseUrl(req: NextRequest): string {
-  // priorité à une env explicite
   const fromEnv =
     process.env.STRIPE_ASSETS_BASE ||
     process.env.NEXT_PUBLIC_BASE_URL ||
-    process.env.VERCEL_URL; // host sans protocole sur Vercel
-
+    process.env.VERCEL_URL; // ex: "mon-site.vercel.app" (sans protocole)
   if (fromEnv) {
     const hasProto = /^https?:\/\//i.test(fromEnv);
     return hasProto ? fromEnv : `https://${fromEnv}`;
   }
-
-  // fallback depuis headers
   const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
   const proto = (req.headers.get("x-forwarded-proto") || "https").split(",")[0].trim();
   return `${proto}://${host}`;
 }
 
-function toAbsoluteUrl(maybeUrl: string | null | undefined, base: string): string | undefined {
-  if (!maybeUrl) return undefined;
+// Rend absolue une URL (gère /... et //...)
+function toAbsoluteUrl(raw: unknown, base: string): string | undefined {
+  if (!raw || typeof raw !== "string") return undefined;
+  const s = raw.trim();
   try {
-    if (/^https?:\/\//i.test(maybeUrl)) return new URL(maybeUrl).toString();
-    return new URL(maybeUrl, base).toString(); // ex: /api/hiboutik/image?... -> https://domain/api/...
+    if (/^https?:\/\//i.test(s)) return new URL(s).toString(); // déjà absolue
+    if (/^\/\//.test(s)) return new URL(`https:${s}`).toString(); // protocole relatif -> https
+    return new URL(s, base).toString(); // chemin relatif -> absolu
   } catch {
     return undefined;
   }
@@ -35,12 +35,10 @@ function toAbsoluteUrl(maybeUrl: string | null | undefined, base: string): strin
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+
     const name: string | undefined = body?.name;
-
-    // tu envoies déjà priceCents côté client : sécu supplémentaire
     const priceCents = Number.parseInt(String(body?.priceCents ?? body?.price ?? body?.amount), 10);
-
-    const imageRaw: string | undefined = body?.image; // peut être /api/hiboutik/image?src=...
+    const imageRaw: string | undefined = body?.image; // ex: "/api/hiboutik/image?src=..."
 
     if (!name) return NextResponse.json({ error: "Missing product name" }, { status: 400 });
     if (!Number.isFinite(priceCents) || priceCents <= 0) {
@@ -49,8 +47,10 @@ export async function POST(req: NextRequest) {
 
     const baseUrl = buildBaseUrl(req);
 
-    // URL absolue obligatoire pour Stripe
+    // 1) tente avec l'image fournie, 2) fallback sur /logo.png
     let imageAbs = toAbsoluteUrl(imageRaw, baseUrl) || toAbsoluteUrl("/logo.png", baseUrl);
+
+    // Stripe exige HTTPS absolu
     if (!imageAbs || !/^https:\/\//i.test(imageAbs)) {
       return NextResponse.json({ error: "Invalid image URL for Stripe" }, { status: 400 });
     }
@@ -63,10 +63,10 @@ export async function POST(req: NextRequest) {
           quantity: 1,
           price_data: {
             currency: "eur",
-            unit_amount: priceCents, // en centimes
+            unit_amount: priceCents, // centimes
             product_data: {
               name,
-              images: [imageAbs], // doit être HTTPS absolu
+              images: [imageAbs], // URL publique HTTPS
             },
           },
         },
