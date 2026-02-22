@@ -33,8 +33,10 @@ export default function HiboutikGridPage() {
           "/api/hiboutik/products/grid?order_by=product_id&sort=ASC&from=0&to=99",
           { cache: "no-store" }
         );
+        
         if (!res.ok) throw new Error(await res.text());
         const json = await res.json();
+        console.log("Products", json);
         setItems(Array.isArray(json) ? json : []);
       } catch (e: any) {
         setErr(e?.message ?? "Erreur inconnue");
