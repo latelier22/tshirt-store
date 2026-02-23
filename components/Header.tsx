@@ -76,7 +76,9 @@ export default function Header() {
     async function run() {
       try {
         setLoadingCats(true)
-        const res = await fetch("/api/hiboutik/categories", { cache: "next: { revalidate: 900 }, // ✅ 15 min" })
+        const res = await fetch("/api/hiboutik/categories", {  next: { revalidate: 900 }, // ✅ 15 min
+         });
+        if (!res.ok) throw new Error(`Erreur ${res.status}`)
         const json = await res.json()
         if (cancelled) return
         setCats(Array.isArray(json) ? json : [])

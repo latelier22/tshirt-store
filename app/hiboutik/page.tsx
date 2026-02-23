@@ -25,7 +25,9 @@ export default function HiboutikGridPage() {
         // Le proxy force déjà product_display_www=1, mais on le met explicitement
         const res = await fetch(
           "/api/hiboutik/products?order_by=product_id&sort=ASC&from=0&to=99&product_display_www=1",
-          { cache: "next: { revalidate: 900 }, // ✅ 15 min" }
+          { next: { revalidate: 900 }, // ✅ 15 min
+
+           }
         );
         if (!res.ok) throw new Error(await res.text());
         const json = await res.json();

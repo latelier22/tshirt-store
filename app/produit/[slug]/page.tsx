@@ -21,7 +21,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const baseUrl = `${protocol}://${host}`
 
   // 🔄 Récupération du JSON public
-  const res = await fetch(`${baseUrl}/data/products.json`, { cache: 'next: { revalidate: 900 }, // ✅ 15 min' })
+  const res = await fetch(`${baseUrl}/data/products.json`, { next: { revalidate: 900 } }) // ✅ 15 min@
   const products: Product[] = await res.json()
   const product = products.find((p) => p.slug === slug)
 

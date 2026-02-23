@@ -90,7 +90,7 @@ async function hiboutikGetProductsByCategory(categoryId: number, from = 0, to = 
 
         const detRes = await fetch(detUrl, {
           headers: { Accept: "application/json", Authorization: `Basic ${token}` },
-          cache: "next: { revalidate: 900 }, // ✅ 15 min",
+          next: { revalidate: 900 }, // ✅ 15 min",
         });
         if (!detRes.ok) return null;
 

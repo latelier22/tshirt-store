@@ -20,7 +20,7 @@ export async function GET(_req: NextRequest) {
       Accept: "application/json",
       Authorization: `Basic ${token(login, apiKey)}`,
     },
-    cache: "next: { revalidate: 900 }, // ✅ 15 min",
+    next: { revalidate: 900 },
   });
 
   const text = await res.text();

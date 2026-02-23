@@ -33,7 +33,6 @@ export async function hiboutikGetProduct(productId: string) {
 
   const res = await fetch(url, {
     headers: { Accept: "application/json", Authorization: `Basic ${token}` },
-    // cache: "next: { revalidate: 900 }, // ✅ 15 min", // on peut mettre en cache côté serveur, mais pas côté client (prix/stock peuvent changer)
     next: { revalidate: 900 }, // ✅ 15 min
   });
 
@@ -68,8 +67,8 @@ export async function hiboutikSearch(reqUrl: string) {
   const res = await fetch(upstream.toString(), {
     method: "GET",
     headers,
-    cache: "next: { revalidate: 900 }, // ✅ 15 min",
-  });
+    next: { revalidate: 900 }, // ✅ 15 min",
+  })  ;
 
   const text = await res.text();
   if (!res.ok) throw new Error(`Hiboutik search ${res.status}: ${text.slice(0, 300)}`);
