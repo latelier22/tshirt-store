@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { formatPrice } from "../lib/utils";
 
 type HiboutikProduct = {
   product_id: number;
@@ -12,10 +13,6 @@ type HiboutikProduct = {
   product_barcode?: string;
 };
 
-function formatPrice(p?: string) {
-  const n = Number(p ?? 0);
-  return isNaN(n) ? "—" : n.toFixed(2).replace(".", ",") + " €";
-}
 
 export default function HiboutikGridPage() {
   const [items, setItems] = useState<HiboutikProduct[]>([]);
@@ -28,7 +25,7 @@ export default function HiboutikGridPage() {
         // Le proxy force déjà product_display_www=1, mais on le met explicitement
         const res = await fetch(
           "/api/hiboutik/products?order_by=product_id&sort=ASC&from=0&to=99&product_display_www=1",
-          { cache: "no-store" }
+          { cache: "next: { revalidate: 900 }, // ✅ 15 min" }
         );
         if (!res.ok) throw new Error(await res.text());
         const json = await res.json();

@@ -2,62 +2,23 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { HiboutikProduct } from "../types/ProductType";
+import { formatPrice } from "../lib/utils";
 
-type HiboutikProduct = {
-  product_id: number;
-  product_model?: string;
-  product_price?: string;
-  product_discount_price?: string;
-  stock_available?: 0 | 1;
-  product_barcode?: string;
-  images?: string[];
-  thumb?: string; // petite (mini) si dispo
-  image?: string; // grande (big) si dispo
-};
 
-import { formatPrice } from "./lib/utils";
 
-export default function HiboutikGridPage() {
-  const [items, setItems] = useState<HiboutikProduct[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState<string | null>(null);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch(
-          "/api/hiboutik/products/grid?order_by=product_id&sort=ASC&from=0&to=99",
-          { next: { revalidate: 900 }, // ✅ 15 min
-
-           }
-        );
-        if (!res.ok) throw new Error(await res.text());
-        const json = await res.json();
-        console.log("Hiboutik API response:", json);
-        setItems(Array.isArray(json) ? json : []);
-      } catch (e: any) {
-        setErr(e?.message ?? "Erreur inconnue");
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
-
+export default function PageClient({ products }: { products: HiboutikProduct[] }) {
   return (
     <main className="mx-auto max-w-7xl mt-32 mb-96 p-6">
       <h1 className="text-2xl font-semibold mb-4">Nos produits</h1>
 
-      {loading && <p>Chargement…</p>}
-      {err && <p className="text-red-600">Erreur : {err}</p>}
-
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {items.map((p) => {
+        {products.map((p) => {
           const hasPromo =
             (p.product_discount_price ?? "0") !== "0" &&
             Number(p.product_discount_price) > 0;
-          const finalPrice = hasPromo ? p.product_discount_price : p.product_price;
 
+          const finalPrice = hasPromo ? p.product_discount_price : p.product_price;
           const img = p.image || p.thumb;
 
           return (
@@ -66,7 +27,7 @@ export default function HiboutikGridPage() {
               href={`/produits/${p.product_id}`}
               className="group block border rounded-2xl p-4 hover:shadow-lg transition-shadow"
             >
-              <div className="aspect-4/3 rounded-xl mb-3 relative overflow-hidden bg-gray-100">
+              <div className="aspect-[4/3] rounded-xl mb-3 relative overflow-hidden bg-gray-100">
                 {img ? (
                   <Image
                     src={img}
@@ -78,10 +39,10 @@ export default function HiboutikGridPage() {
                       (max-width: 1280px) 25vw,
                       20vw
                     "
-                    placeholder={p.thumb ? "blur" : "empty"}
-                    blurDataURL={p.thumb}
+                    // ⚠️ blurDataURL doit être une data URL base64 normalement.
+                    // Donc on évite d’activer blur avec une URL HTTP (sinon comportement bizarre / requêtes en plus)
+                    placeholder="empty"
                     className="object-cover"
-                    priority={false}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -106,10 +67,6 @@ export default function HiboutikGridPage() {
           );
         })}
       </div>
-
-      {!loading && !err && items.length === 0 && (
-        <p className="mt-6 opacity-70">Aucun produit à afficher.</p>
-      )}
     </main>
   );
 }

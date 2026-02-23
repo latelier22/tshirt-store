@@ -29,6 +29,16 @@ export default function Footer() {
     return () => clearInterval(timer)
   }, [images.length])
 
+  // 🧷 bloquer le scroll derrière la modale (mobile friendly)
+  useEffect(() => {
+    if (!isModalOpen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [isModalOpen])
+
   // ⌨️ navigation clavier dans la modale
   const handleKey = useCallback(
     (e: KeyboardEvent) => {
@@ -56,6 +66,7 @@ export default function Footer() {
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStartX(e.touches[0].clientX)
+    setTouchEndX(null)
   }
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -63,14 +74,12 @@ export default function Footer() {
   }
 
   const handleTouchEnd = () => {
-    if (!touchStartX || !touchEndX) return
+    if (touchStartX === null || touchEndX === null) return
     const distance = touchStartX - touchEndX
 
     if (distance > 60) {
-      // swipe gauche → image suivante
       setModalIndex((i) => (i + 1) % images.length)
     } else if (distance < -60) {
-      // swipe droite → image précédente
       setModalIndex((i) => (i - 1 + images.length) % images.length)
     }
 
@@ -78,10 +87,11 @@ export default function Footer() {
     setTouchEndX(null)
   }
 
+  // Pour l’effet "image active" stable (évite le index+1 qui casse au wrap)
+  const activeIndex = index % images.length
+
   return (
-   <footer className="bg-black text-white w-full z-40 md:fixed md:bottom-0 md:left-0">
-
-
+    <footer className="bg-black text-white w-full z-40 md:fixed md:bottom-0 md:left-0">
       {/* 🎞️ Carrousel horizontal */}
       <div className="relative w-full overflow-hidden py-6 bg-black">
         <div
@@ -94,10 +104,9 @@ export default function Footer() {
           {images.map((src, i) => (
             <div
               key={i}
-             className={`w-1/4 shrink-0 relative h-24 sm:h-32 md:h-48 lg:h-64 cursor-pointer transition-all duration-500 ${
-  i === index + 1 ? 'opacity-100 scale-105' : 'opacity-60 scale-95'
-}`}
-
+              className={`w-1/4 shrink-0 relative h-24 sm:h-32 md:h-48 lg:h-64 cursor-pointer transition-all duration-500 ${
+                i === activeIndex ? 'opacity-100 scale-105' : 'opacity-60 scale-95'
+              }`}
               onClick={() => openModal(i)}
             >
               <Image
@@ -105,6 +114,13 @@ export default function Footer() {
                 alt={`Image ${i + 1}`}
                 fill
                 className="object-cover rounded-lg hover:opacity-90"
+                // ✅ IMPORTANT: sizes obligatoire avec fill
+                sizes="
+                  (max-width: 640px) 25vw,
+                  (max-width: 1024px) 25vw,
+                  (max-width: 1280px) 20vw,
+                  25vw
+                "
               />
             </div>
           ))}
@@ -117,15 +133,24 @@ export default function Footer() {
           <h2 className="text-lg font-bold tracking-wide">Multimédia services</h2>
           <p className="text-sm text-gray-300">© {new Date().getFullYear()} Tous droits réservés</p>
         </div>
-        <div className="flex space-x-6 text-2xl">
-          <LiensReseaux/>
-        </div>
-        <nav className="space-x-6 text-sm font-medium">
-          <Link href="/cgv" className="hover:text-gray-700">CGV</Link>
-          <Link href="/confidentialite" className="hover:text-gray-700">Données</Link>
-          <Link href="/mentions-legales" className="hover:text-gray-700">Mentions légales</Link>
 
-          <Link href="/contact" className="hover:text-gray-700">Contact</Link>
+        <div className="flex space-x-6 text-2xl">
+          <LiensReseaux />
+        </div>
+
+        <nav className="space-x-6 text-sm font-medium">
+          <Link href="/cgv" className="hover:text-gray-700">
+            CGV
+          </Link>
+          <Link href="/confidentialite" className="hover:text-gray-700">
+            Données
+          </Link>
+          <Link href="/mentions-legales" className="hover:text-gray-700">
+            Mentions légales
+          </Link>
+          <Link href="/contact" className="hover:text-gray-700">
+            Contact
+          </Link>
         </nav>
       </div>
 
@@ -159,6 +184,9 @@ export default function Footer() {
               alt={`Image ${modalIndex + 1}`}
               fill
               className="object-contain rounded-lg transition-all duration-500"
+              // ✅ IMPORTANT: sizes obligatoire avec fill
+              sizes="90vw"
+              priority
             />
 
             {/* flèches */}

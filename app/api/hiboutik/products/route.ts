@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
   const res = await fetch(upstream.toString(), {
     method: "GET",
     headers: headersObj, // ✅ plus de spread d’union
-    cache: "no-store",
+    cache: "next: { revalidate: 900 }, // ✅ 15 min",
   });
 
   const text = await res.text();
