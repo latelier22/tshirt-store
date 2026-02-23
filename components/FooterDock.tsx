@@ -4,7 +4,11 @@ import { useEffect, useState } from 'react'
 import { Plus, X, ChevronDown } from 'lucide-react'
 import Footer from './Footer'
 
-export default function FooterDock() {
+type FooterDockProps = {
+  autoHideMs?: number;
+};
+
+export default function FooterDock({ autoHideMs = 2500 }: FooterDockProps) {
   const [open, setOpen] = useState(true)
 
   // visible à l'ouverture puis se replie

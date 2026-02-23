@@ -31,8 +31,8 @@ import {
 
 type HiboutikCategory = {
   category_id: number;
-  category_name: string;
-  category_id_parent: number;
+  category_name?: string; // ✅ API peut renvoyer vide/undefined
+  category_id_parent?: number;
   category_enabled?: 0 | 1;
   category_enabled_www?: 0 | 1;
   category_position?: number;
@@ -40,7 +40,13 @@ type HiboutikCategory = {
   category_color?: string;
 };
 
-function slugify(s: string) {
+function safeStr(v: unknown): string {
+  return String(v ?? "").trim();
+}
+
+function slugify(input: unknown) {
+  const s = safeStr(input);
+  if (!s) return "categorie";
   return s
     .toLowerCase()
     .normalize("NFD")
@@ -51,7 +57,9 @@ function slugify(s: string) {
 }
 
 // Normalisation légère pour matcher tes variantes (NEUF/NEUVE, accents, apostrophes, etc.)
-function normName(s: string) {
+function normName(input: unknown) {
+  const s = safeStr(input);
+  if (!s) return "";
   return s
     .toUpperCase()
     .normalize("NFD")
@@ -63,36 +71,36 @@ function normName(s: string) {
 
 const ICONS: Record<string, any> = {
   "MAIN D'OEUVRE": Wrench,
-  "ACCESSOIRES": Puzzle,
-  "CABLES": Cable,
-  "CHARGEUR": Zap,
-  "VOITURE": Car,
+  ACCESSOIRES: Puzzle,
+  CABLES: Cable,
+  CHARGEUR: Zap,
+  VOITURE: Car,
   "TROTTINETTE/VELO": Bike,
-  "TROTTINETTE": Bike,
-  "STOCKAGE": HardDrive,
-  "ADAPTATEUR": Plug,
+  TROTTINETTE: Bike,
+  STOCKAGE: HardDrive,
+  ADAPTATEUR: Plug,
 
-  "TELEPHONES": Smartphone,
-  "TABLETTES": Tablet,
-  "MONTRES": Watch,
+  TELEPHONES: Smartphone,
+  TABLETTES: Tablet,
+  MONTRES: Watch,
 
-  "CONSOLES": Gamepad2,
-  "PS5": Gamepad2,
+  CONSOLES: Gamepad2,
+  PS5: Gamepad2,
 
-  "PROTECTION": Shield,
+  PROTECTION: Shield,
   "COQUE/ETUI IPHONE": ShieldCheck,
   "COQUE/ETUI SAMSUNG": ShieldCheck,
 
-  "ORDINATEUR": Laptop,
+  ORDINATEUR: Laptop,
 
-  "DALLE": Monitor,
-  "DALLE ": Monitor, // au cas où
-  "ECRAN": Monitor,
+  DALLE: Monitor,
+  "DALLE ": Monitor,
+  ECRAN: Monitor,
 
   "PIECES DETACHEES": PackageSearch,
   "PIECES DETACHÉES": PackageSearch,
 
-  "IPHONE": Smartphone,
+  IPHONE: Smartphone,
   "CONNECTEUR DE CHARGE": PlugZap,
 
   "BATTERIE IPHONE": BatteryCharging,
@@ -100,25 +108,27 @@ const ICONS: Record<string, any> = {
 
   "ENCEINTE BLUETOOTH": Speaker,
   "APPAREIL MAISON": Home,
-  "LIVRAISON": Truck,
+  LIVRAISON: Truck,
 
-  "NEUF": Sparkles,
-  "NEUVE": Sparkles,
+  NEUF: Sparkles,
+  NEUVE: Sparkles,
   "OCCASION/RECONDITIONNE": Recycle,
   "OCCASION/RECONDITIONNÉ": Recycle,
   "OCCASSION/RECONDITIONNEE": Recycle,
   "OCCASSION/RECONDITIONNÉE": Recycle,
 };
 
-function pickIcon(name: string) {
+function pickIcon(name: unknown) {
   const key = normName(name);
   return ICONS[key] ?? ShoppingBag;
 }
 
 export default function CategoriesGrid({ categories }: { categories: HiboutikCategory[] }) {
-  // On affiche en priorité les catégories visibles web
-  // (si tu veux TOUT afficher, enlève le filtre enabled_www)
-  const roots = categories
+  const list = Array.isArray(categories) ? categories : [];
+
+  // ✅ On filtre d’abord les catégories sans nom (sinon crash SSR)
+  const roots = list
+    .filter((c) => safeStr(c.category_name) !== "")
     .filter((c) => (c.category_enabled ?? 1) === 1)
     .filter((c) => (c.category_enabled_www ?? 1) === 1)
     .filter((c) => (c.category_id_parent ?? 0) === 0)
@@ -133,8 +143,9 @@ export default function CategoriesGrid({ categories }: { categories: HiboutikCat
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {roots.map((c) => {
-          const Icon = pickIcon(c.category_name);
-          const slug = `${slugify(c.category_name)}-${c.category_id}`;
+          const name = safeStr(c.category_name);
+          const Icon = pickIcon(name);
+          const slug = `${slugify(name)}-${c.category_id}`;
 
           const bg = c.category_bck_color ?? "#111111";
           const fg = c.category_color ?? "#ffffff";
@@ -154,9 +165,7 @@ export default function CategoriesGrid({ categories }: { categories: HiboutikCat
               </div>
 
               <div className="min-h-[2.5rem]">
-                <div className="font-semibold leading-snug group-hover:opacity-90">
-                  {c.category_name}
-                </div>
+                <div className="font-semibold leading-snug group-hover:opacity-90">{name}</div>
                 <div className="text-xs opacity-65 mt-1">Voir les produits</div>
               </div>
             </Link>
@@ -165,9 +174,7 @@ export default function CategoriesGrid({ categories }: { categories: HiboutikCat
       </div>
 
       {roots.length === 0 && (
-        <div className="mt-10 text-sm opacity-70">
-          Aucune catégorie visible pour le moment.
-        </div>
+        <div className="mt-10 text-sm opacity-70">Aucune catégorie visible pour le moment.</div>
       )}
     </main>
   );
