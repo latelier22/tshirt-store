@@ -108,3 +108,22 @@ export async function hiboutikSearchHydrated(reqUrl: string, concurrency = 8) {
       !!r && (r.image || r.thumb || (Array.isArray(r.images) && r.images.length > 0))
   );
 }
+
+
+export async function hiboutikGetCategories() {
+  const { account, login, apiKey } = hiboutikEnv();
+  const token = hiboutikToken(login, apiKey);
+
+  const url = `https://${account}.hiboutik.com/api/categories`;
+
+  const res = await fetch(url, {
+    headers: { Accept: "application/json", Authorization: `Basic ${token}` },
+    next: { revalidate: 900 }, // ✅ cache 15 min
+  });
+
+  const text = await res.text();
+  if (!res.ok) throw new Error(`Hiboutik categories ${res.status}: ${text.slice(0, 300)}`);
+
+  const json = text ? JSON.parse(text) : [];
+  return Array.isArray(json) ? json : [];
+}
