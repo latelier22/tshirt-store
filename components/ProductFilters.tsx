@@ -5,11 +5,11 @@ import { useProductFilters } from "@/app/stores/productFilters";
 export default function ProductFilters({
   total,
   shown,
-  matched,
+  matched = 0,
 }: {
   total: number;
   shown: number;
-  matched: number;
+  matched?: number; // ✅ optionnel
 }) {
   const hideOutOfStock = useProductFilters((s) => s.hideOutOfStock);
   const hideNoImage = useProductFilters((s) => s.hideNoImage);
