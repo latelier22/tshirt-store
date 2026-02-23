@@ -111,19 +111,15 @@ export async function hiboutikSearchHydrated(reqUrl: string, concurrency = 8) {
 
 
 export async function hiboutikGetCategories() {
-  const { account, login, apiKey } = hiboutikEnv();
-  const token = hiboutikToken(login, apiKey);
+  const base = process.env.CACHE_API_BASE;
+  if (!base) throw new Error("Missing env: CACHE_API_BASE");
 
-  const url = `https://${account}.hiboutik.com/api/categories`;
-
-  const res = await fetch(url, {
-    headers: { Accept: "application/json", Authorization: `Basic ${token}` },
-    next: { revalidate: 900 }, // ✅ cache 15 min
+  const res = await fetch(`${base.replace(/\/+$/, "")}/api/categories`, {
+    next: { revalidate: 60 },
   });
 
-  const text = await res.text();
-  if (!res.ok) throw new Error(`Hiboutik categories ${res.status}: ${text.slice(0, 300)}`);
+  const json = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(`CACHE categories ${res.status}: ${JSON.stringify(json).slice(0, 300)}`);
 
-  const json = text ? JSON.parse(text) : [];
-  return Array.isArray(json) ? json : [];
+  return Array.isArray(json?.data) ? json.data : [];
 }

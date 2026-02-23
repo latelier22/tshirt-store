@@ -81,6 +81,11 @@ export default function ProductGallery({ images }: GalleryProps) {
     setZoom(1)
   }
 
+  const currentSrc =
+  images && images[current] && images[current].trim() !== ""
+    ? images[current]
+    : null;
+
   return (
     <div className="flex flex-col items-center w-full select-none">
       {/* 📱 MOBILE : image + miniatures en colonne à droite */}
@@ -98,13 +103,19 @@ export default function ProductGallery({ images }: GalleryProps) {
           onClick={openModal}
           className="relative w-full max-w-md h-80 md:h-96 mb-4 overflow-hidden rounded-xl shadow-lg bg-white cursor-zoom-in"
         >
-          <Image
-            src={images[current]}
-            alt={`Image ${current + 1}`}
-            fill
-            className="object-contain"
-            style={{ transform: `scale(${zoom})` }}
-          />
+          {currentSrc ? (
+    <Image
+      src={currentSrc}
+      alt={`Image ${current + 1}`}
+      fill
+      draggable={false}
+      className="object-contain"
+    />
+  ) : (
+    <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+      Pas d’image disponible
+    </div>
+  )}
         </div>
 
         {/* Miniatures */}

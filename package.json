@@ -8,7 +8,6 @@
     "start": "next start",
     "lint": "eslint"
   },
-
   "dependencies": {
     "@pmndrs/branding": "^0.0.8",
     "@react-three/drei": "^10.7.6",
@@ -22,7 +21,8 @@
     "react-icons": "^5.5.0",
     "stripe": "^19.1.0",
     "three": "^0.180.0",
-    "valtio": "^2.1.8"
+    "valtio": "^2.1.8",
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -36,5 +36,3 @@
     "typescript": "^5"
   }
 }
-
-

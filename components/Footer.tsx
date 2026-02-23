@@ -91,7 +91,7 @@ export default function Footer() {
   const activeIndex = index % images.length
 
   return (
-    <footer className="bg-black text-white w-full z-40 md:fixed md:bottom-0 md:left-0">
+   <footer className="bg-black text-white w-full">
       {/* 🎞️ Carrousel horizontal */}
       <div className="relative w-full overflow-hidden py-6 bg-black">
         <div

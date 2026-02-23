@@ -1,19 +1,12 @@
 // app/lib/hiboutik.ts
-type HiboutikEnv = {
-  account: string;
-  login: string;
-  apiKey: string;
-};
 
-function getEnv(): HiboutikEnv {
-  const account = process.env.HIBOUTIK_ACCOUNT;
-  const login = process.env.HIBOUTIK_LOGIN;
-  const apiKey = process.env.HIBOUTIK_API_KEY;
+// ✅ On ne lit plus Hiboutik direct.
+// ✅ On lit ton cache VPS : https://api.multimedia-services.fr
+// ✅ On garde le proxy d’images /api/hiboutik/image (côté Next) pour ne rien casser.
 
-  if (!account || !login || !apiKey) {
-    throw new Error("Missing Hiboutik env vars (HIBOUTIK_ACCOUNT / LOGIN / API_KEY)");
-  }
-  return { account, login, apiKey };
+function cacheBase() {
+  const base = process.env.CACHE_API_BASE || "https://api.multimedia-services.fr";
+  return base.replace(/\/+$/, "");
 }
 
 // helper pour fabriquer une URL proxy locale (OK pour le client)
@@ -21,151 +14,94 @@ function toProxy(u?: string) {
   return u ? `/api/hiboutik/image?src=${encodeURIComponent(u)}` : undefined;
 }
 
-function extractImages(obj: any) {
-  const urls = new Set<string>();
-  const push = (v: any) => {
-    if (!v) return;
-    if (typeof v === "string" && /^https?:\/\//i.test(v)) urls.add(v);
-    if (typeof v === "object" && typeof v.url === "string" && /^https?:\/\//i.test(v.url)) {
-      urls.add(v.url);
-    }
-  };
-  const walk = (x: any) => {
-    if (!x) return;
-    if (Array.isArray(x)) return x.forEach(walk);
-    if (typeof x === "object") {
-      for (const [k, v] of Object.entries(x)) {
-        if (k.toLowerCase().includes("image")) {
-          if (Array.isArray(v)) v.forEach(push);
-          else push(v);
-        }
-        if (v && typeof v === "object") walk(v);
-      }
-    }
-  };
-  walk(obj);
-
-  const list = Array.from(urls);
-  const mini = list.find((u) => /\/mini_/i.test(u));
-  const bigs = list.filter((u) => /\/big_/i.test(u));
-  const big = bigs[0] ?? undefined;
-
-  return {
-    list,
-    thumb: mini ?? big ?? list[0],
-    image: big ?? mini ?? list[0],
-  };
+function safeJsonParse<T = any>(s: string): T | null {
+  try {
+    return JSON.parse(s) as T;
+  } catch {
+    return null;
+  }
 }
 
-function basicToken(login: string, apiKey: string) {
-  // Node => Buffer dispo
-  return Buffer.from(`${login}:${apiKey}`).toString("base64");
-}
+function normalizeImagesFromCache(p: any) {
+  // Ton VPS peut renvoyer :
+  // - images: string[]
+  // - images_json: string (JSON array)
+  // - ou rien (dans ce cas on laisse vide)
+  let images: string[] = [];
 
-export async function hiboutikGetProduct(id: string) {
-  const { account, login, apiKey } = getEnv();
-
-  const upstream = `https://${account}.hiboutik.com/api/products/${encodeURIComponent(id)}/`;
-  const token = basicToken(login, apiKey);
-
-  const res = await fetch(upstream, {
-    headers: { Accept: "application/json", Authorization: `Basic ${token}` },
-    next: { revalidate: 900 }, // ✅ 15 min
-  });
-
-  const text = await res.text();
-  if (!res.ok) {
-    // on remonte l’erreur brute (utile en debug)
-    throw new Error(`Hiboutik ${res.status}: ${text.slice(0, 300)}`);
+  if (Array.isArray(p?.images)) {
+    images = p.images.filter((u: any) => typeof u === "string");
+  } else if (typeof p?.images_json === "string") {
+    const parsed = safeJsonParse<any[]>(p.images_json);
+    if (Array.isArray(parsed)) images = parsed.filter((u) => typeof u === "string");
   }
 
-  const raw = text ? JSON.parse(text) : null;
-  const p = Array.isArray(raw) ? raw[0] : raw;
-  if (!p) return null;
-
-  const { list, thumb, image } = extractImages(p);
+  const thumb = p?.thumb ?? images[0];
+  const image = p?.image ?? images[0];
 
   return {
     ...p,
-    images: list.map(toProxy),
+    images: images.map(toProxy),
     thumb: toProxy(thumb),
     image: toProxy(image),
   };
 }
 
+export async function hiboutikGetProduct(id: string) {
+  const base = cacheBase();
+
+  const res = await fetch(`${base}/api/products/${encodeURIComponent(id)}`, {
+    // 🔥 comme le VPS répond en ms, tu peux laisser no-store
+    cache: "no-store",
+  });
+
+  const text = await res.text();
+  const json = text ? safeJsonParse<any>(text) : null;
+
+  if (!res.ok) {
+    throw new Error(`CACHE product ${res.status}: ${text.slice(0, 300)}`);
+  }
+
+  const p = json?.data;
+  if (!p) return null;
+
+  return normalizeImagesFromCache(p);
+}
 
 export async function hiboutikGetGrid(opts?: {
   order_by?: string;
   sort?: "ASC" | "DESC";
   from?: number;
   to?: number;
+  category?: string;
+  category_slug?: string;
+  product_category?: string;
+  include_children?: "0" | "1";
+  q?: string;
 }) {
-  const { account, login, apiKey } = getEnv();
-  const token = basicToken(login, apiKey);
+  const base = cacheBase();
 
-  const order_by = opts?.order_by ?? "product_id";
-  const sort = opts?.sort ?? "ASC";
-  const from = opts?.from ?? 0;
-  const to = opts?.to ?? 99;
+  const url = new URL(`${base}/api/products`);
+  url.searchParams.set("from", String(opts?.from ?? 0));
+  url.searchParams.set("to", String(opts?.to ?? 99));
 
-  // 1) search list
-  const searchUrl = new URL(`https://${account}.hiboutik.com/api/products/search/`);
-  searchUrl.searchParams.set("product_display_www", "1");
-  searchUrl.searchParams.set("order_by", order_by);
-  searchUrl.searchParams.set("sort", sort);
+  if (opts?.order_by) url.searchParams.set("order_by", opts.order_by);
+  if (opts?.sort) url.searchParams.set("sort", opts.sort);
 
-  const listRes = await fetch(searchUrl.toString(), {
-    headers: {
-      Accept: "application/json",
-      Authorization: `Basic ${token}`,
-      Range: `items=${from}-${to}`,
-    },
-    next: { revalidate: 900 }, // ✅ 15 min
-  });
+  if (opts?.q) url.searchParams.set("q", opts.q);
 
-  const listText = await listRes.text();
-  if (!listRes.ok) {
-    throw new Error(`Hiboutik search ${listRes.status}: ${listText.slice(0, 300)}`);
-  }
+  if (opts?.category) url.searchParams.set("category", opts.category);
+  if (opts?.category_slug) url.searchParams.set("category_slug", opts.category_slug);
 
-  const listJson = listText ? JSON.parse(listText) : null;
-  const items: any[] = Array.isArray(listJson) ? listJson : [];
+  if (opts?.product_category) url.searchParams.set("product_category", opts.product_category);
+  if (opts?.include_children) url.searchParams.set("include_children", opts.include_children);
 
-  // 2) hydrate details en parallèle (ATTENTION: 100 produits = 100 appels)
-  const hydrated = await Promise.all(
-    items.map(async (p) => {
-      try {
-        const detUrl = `https://${account}.hiboutik.com/api/products/${encodeURIComponent(
-          String(p.product_id)
-        )}/`;
+  const res = await fetch(url.toString(), { cache: "no-store" });
+  const text = await res.text();
+  const json = text ? safeJsonParse<any>(text) : null;
 
-        const detRes = await fetch(detUrl, {
-          headers: { Accept: "application/json", Authorization: `Basic ${token}` },
-          next: { revalidate: 900 }, // ✅ 15 min
-        });
-        if (!detRes.ok) return null;
+  if (!res.ok) throw new Error(`CACHE products ${res.status}: ${text.slice(0, 300)}`);
 
-        const raw = await detRes.json();
-        const det = Array.isArray(raw) ? raw[0] : raw;
-        if (!det) return null;
-
-        const { list, thumb, image } = extractImages(det);
-
-        const out = {
-          ...p,
-          images: list.map(toProxy),
-          thumb: toProxy(thumb),
-          image: toProxy(image),
-        };
-
-        // ne garder que ceux avec image
-        if (!out.image && !out.thumb && (!out.images || out.images.length === 0)) return null;
-        return out;
-      } catch {
-        return null;
-      }
-    })
-  );
-
-  return hydrated.filter(Boolean);
+  const items: any[] = Array.isArray(json?.data) ? json.data : [];
+  return items.map(normalizeImagesFromCache);
 }

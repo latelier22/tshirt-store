@@ -16,16 +16,14 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 text-gray-900 min-h-screen grid grid-rows-[auto_1fr_auto]`}
-      >
-        <Header />{/* pas fixed (recommandé ici) */}
-        <main className="relative overflow-hidden">{/* <- conteneur de hauteur exacte */}
-          {children}
-        </main>
-        <FooterVisibility />
-
-      </body>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 text-gray-900 min-h-screen flex flex-col`}>
+  <Header />
+  <main className="flex-1 pt-20">
+    {children}
+  </main>
+  <FooterVisibility />
+</body>
     </html>
   );
 }
+
