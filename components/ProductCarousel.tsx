@@ -1,4 +1,3 @@
-
 // components/ProductCarousel.tsx
 "use client";
 
@@ -6,7 +5,6 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 
-// Si tu as déjà ton type HiboutikProduct ici, tu peux l'importer
 export type HiboutikProduct = {
   product_id: number;
   product_model?: string;
@@ -29,19 +27,19 @@ type Props = {
   pauseAfterUserMs?: number;
 
   showArrows?: boolean;
-
-  // Responsive card widths via Tailwind classes
   cardClassName?: string;
 
-  // Optional: proxy function for images
+  // Proxy optional (default smart)
   toProxy?: (url?: string) => string | undefined;
 
-  // Optional placeholder override
   placeholderDataUrl?: string;
 };
 
 function defaultToProxy(u?: string) {
-  return u ? `/api/hiboutik/image?src=${encodeURIComponent(u)}` : undefined;
+  if (!u) return undefined;
+  // déjà proxy / data url => ne pas re-proxy
+  if (u.startsWith("/api/hiboutik/image?src=") || u.startsWith("data:image/")) return u;
+  return `/api/hiboutik/image?src=${encodeURIComponent(u)}`;
 }
 
 function firstImage(p: any) {
@@ -49,7 +47,6 @@ function firstImage(p: any) {
   return p?.image ?? p?.thumb ?? list[0];
 }
 
-// Placeholder SVG (pas d'image)
 const DEFAULT_PLACEHOLDER_SVG = encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500">
   <defs>
@@ -74,38 +71,31 @@ function defaultPlaceholderDataUrl() {
   return `data:image/svg+xml;charset=utf-8,${DEFAULT_PLACEHOLDER_SVG}`;
 }
 
-function useAutoDragCarousel(opts?: {
-  intervalMs?: number;
-  pauseAfterUserMs?: number;
-  autoplay?: boolean;
-}) {
-  const intervalMs = opts?.intervalMs ?? 2600;
-  const pauseAfterUserMs = opts?.pauseAfterUserMs ?? 5000;
-  const autoplay = opts?.autoplay ?? true;
-
+/**
+ * Drag/Swipe qui n'empêche PAS le click (pas de preventDefault au pointerdown).
+ * On bloque le click seulement si on a réellement drag.
+ */
+function useDragScrollCarousel() {
   const ref = React.useRef<HTMLDivElement | null>(null);
+
   const isDown = React.useRef(false);
   const startX = React.useRef(0);
   const startScrollLeft = React.useRef(0);
-  const lastUserTs = React.useRef(0);
-  const didMove = React.useRef(false);
 
-  const markUser = () => {
-    lastUserTs.current = Date.now();
-  };
+  const dragged = React.useRef(false);
+  const blockClickUntil = React.useRef(0);
+
+  const DRAG_THRESHOLD = 10;
 
   const onPointerDown = (e: React.PointerEvent) => {
     const el = ref.current;
     if (!el) return;
-    e.preventDefault(); // empêche drag natif image/lien
 
     isDown.current = true;
-    didMove.current = false;
+    dragged.current = false;
+
     startX.current = e.clientX;
     startScrollLeft.current = el.scrollLeft;
-    markUser();
-
-    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
@@ -113,55 +103,38 @@ function useAutoDragCarousel(opts?: {
     if (!el || !isDown.current) return;
 
     const dx = e.clientX - startX.current;
-    if (Math.abs(dx) > 6) didMove.current = true;
 
-    el.scrollLeft = startScrollLeft.current - dx;
+    if (!dragged.current && Math.abs(dx) > DRAG_THRESHOLD) {
+      dragged.current = true;
+      // à partir de là seulement, on capture le pointer
+      (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+      e.preventDefault();
+    }
+
+    if (dragged.current) {
+      el.scrollLeft = startScrollLeft.current - dx;
+    }
   };
 
   const onPointerUp = () => {
     if (!isDown.current) return;
     isDown.current = false;
-    markUser();
+
+    if (dragged.current) {
+      blockClickUntil.current = Date.now() + 350;
+    }
+
+    dragged.current = false;
   };
 
-  const onClickCapture = (e: React.MouseEvent) => {
-    if (didMove.current) {
+  const onClick = (e: React.MouseEvent) => {
+    if (Date.now() < blockClickUntil.current) {
       e.preventDefault();
       e.stopPropagation();
     }
   };
 
-  const scrollByCard = (dir: -1 | 1) => {
-    const el = ref.current;
-    if (!el) return;
-
-    const firstCard = el.querySelector<HTMLElement>("[data-carousel-card]");
-    const step = (firstCard?.offsetWidth ?? 240) + 16; // + gap
-    el.scrollBy({ left: dir * step, behavior: "smooth" });
-    markUser();
-  };
-
-  const scrollPrev = () => scrollByCard(-1);
-  const scrollNext = () => scrollByCard(1);
-
-  React.useEffect(() => {
-    if (!autoplay) return;
-    const el = ref.current;
-    if (!el) return;
-
-    const t = window.setInterval(() => {
-      if (Date.now() - lastUserTs.current < pauseAfterUserMs) return;
-
-      const nearEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8;
-      if (nearEnd) el.scrollTo({ left: 0, behavior: "smooth" });
-      else scrollByCard(1);
-    }, intervalMs);
-
-    return () => window.clearInterval(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [intervalMs, pauseAfterUserMs, autoplay]);
-
-  return { ref, onPointerDown, onPointerMove, onPointerUp, onClickCapture, scrollPrev, scrollNext };
+  return { ref, onPointerDown, onPointerMove, onPointerUp, onClick };
 }
 
 export default function ProductCarousel({
@@ -180,8 +153,42 @@ export default function ProductCarousel({
   const items = products ?? [];
   if (!items.length) return <div className="opacity-70">Aucun produit.</div>;
 
-  const { ref, onPointerDown, onPointerMove, onPointerUp, onClickCapture, scrollPrev, scrollNext } =
-    useAutoDragCarousel({ intervalMs, pauseAfterUserMs, autoplay });
+  const { ref, onPointerDown, onPointerMove, onPointerUp, onClick } = useDragScrollCarousel();
+
+  const lastUserTs = React.useRef(0);
+  const markUser = () => (lastUserTs.current = Date.now());
+
+  const scrollByCard = React.useCallback(
+    (dir: -1 | 1) => {
+      const el = ref.current;
+      if (!el) return;
+
+      const firstCard = el.querySelector<HTMLElement>("[data-carousel-card]");
+      const step = (firstCard?.offsetWidth ?? 240) + 16;
+      el.scrollBy({ left: dir * step, behavior: "smooth" });
+      markUser();
+    },
+    [ref]
+  );
+
+  const scrollPrev = () => scrollByCard(-1);
+  const scrollNext = () => scrollByCard(1);
+
+  React.useEffect(() => {
+    if (!autoplay) return;
+    const el = ref.current;
+    if (!el) return;
+
+    const t = window.setInterval(() => {
+      if (Date.now() - lastUserTs.current < pauseAfterUserMs) return;
+
+      const nearEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8;
+      if (nearEnd) el.scrollTo({ left: 0, behavior: "smooth" });
+      else scrollByCard(1);
+    }, intervalMs);
+
+    return () => window.clearInterval(t);
+  }, [autoplay, intervalMs, pauseAfterUserMs, scrollByCard]);
 
   return (
     <section className="relative">
@@ -216,7 +223,10 @@ export default function ProductCarousel({
 
       <div
         ref={ref}
-        onPointerDown={onPointerDown}
+        onPointerDown={(e) => {
+          markUser();
+          onPointerDown(e);
+        }}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
@@ -230,14 +240,15 @@ export default function ProductCarousel({
         "
       >
         {items.map((p: any) => {
-          const img = toProxy(firstImage(p)) ?? placeholderDataUrl;
+          const rawImg = firstImage(p);
+          const img = toProxy(rawImg) ?? placeholderDataUrl;
           const href = hrefForProduct ? hrefForProduct(p) : `/produits/${p.product_id}`;
 
           return (
             <Link
               key={p.product_id}
               href={href}
-              onClickCapture={onClickCapture}
+              onClick={onClick} // ✅ CLIC OK
               data-carousel-card
               className={`
                 snap-start
@@ -260,7 +271,7 @@ export default function ProductCarousel({
               <div className="text-sm font-semibold line-clamp-2">{p.product_model}</div>
 
               <div className="mt-1 flex items-baseline gap-2">
-                {p.product_discount_price ? (
+                {p.product_discount_price && Number(p.product_discount_price) > 0 ? (
                   <>
                     <div className="text-lg font-bold">{p.product_discount_price} €</div>
                     <div className="text-sm line-through opacity-60">{p.product_price} €</div>

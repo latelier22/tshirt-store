@@ -8,6 +8,13 @@ import { HiboutikProduct } from "@/app/types/ProductType";
 import { useProductFilters } from "@/app/stores/productFilters";
 import ProductFilters from "@/components/ProductFilters";
 
+import ProductUpdatesListener from "@/components/ProductUpdatesListener";
+
+
+ 
+ 
+
+
 type Props = { products: HiboutikProduct[] };
 
 function hasAnyImage(p: HiboutikProduct): boolean {
@@ -97,6 +104,7 @@ export default function PageClient({ products }: Props) {
 
   return (
     <div className="mx-auto max-w-6xl px-6">
+         <ProductUpdatesListener />
       <ProductFilters total={products.length} shown={base.length} matched={matched.length} />
 
       {query.trim() && (

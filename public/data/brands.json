@@ -1,0 +1,514 @@
+[
+    {
+        "name": "Nokia",
+        "id": 1
+    },
+    {
+        "name": "Ericsson",
+        "id": 2
+    },
+    {
+        "name": "Siemens",
+        "id": 3
+    },
+    {
+        "name": "Motorola",
+        "id": 4
+    },
+    {
+        "name": "alcatel",
+        "id": 5
+    },
+    {
+        "name": "Panasonic",
+        "id": 6
+    },
+    {
+        "name": "Sony",
+        "id": 7
+    },
+    {
+        "name": "Mitsubishi",
+        "id": 8
+    },
+    {
+        "name": "Samsung",
+        "id": 9
+    },
+    {
+        "name": "Bosch",
+        "id": 10
+    },
+    {
+        "name": "Philips",
+        "id": 11
+    },
+    {
+        "name": "NEC",
+        "id": 12
+    },
+    {
+        "name": "Sagem",
+        "id": 13
+    },
+    {
+        "name": "Maxon",
+        "id": 14
+    },
+    {
+        "name": "Benefon",
+        "id": 15
+    },
+    {
+        "name": "Telit",
+        "id": 16
+    },
+    {
+        "name": "Kyocera",
+        "id": 17
+    },
+    {
+        "name": "Sendo",
+        "id": 18
+    },
+    {
+        "name": "Sony Ericsson",
+        "id": 19
+    },
+    {
+        "name": "LG",
+        "id": 20
+    },
+    {
+        "name": "Tel.Me.",
+        "id": 21
+    },
+    {
+        "name": "Neonode",
+        "id": 22
+    },
+    {
+        "name": "Sharp",
+        "id": 23
+    },
+    {
+        "name": "Chea",
+        "id": 24
+    },
+    {
+        "name": "Mitac",
+        "id": 25
+    },
+    {
+        "name": "Sewon",
+        "id": 26
+    },
+    {
+        "name": "Palm",
+        "id": 27
+    },
+    {
+        "name": "Amoi",
+        "id": 28
+    },
+    {
+        "name": "Innostream",
+        "id": 29
+    },
+    {
+        "name": "O2",
+        "id": 30
+    },
+    {
+        "name": "BenQ",
+        "id": 31
+    },
+    {
+        "name": "Pantech",
+        "id": 32
+    },
+    {
+        "name": "Haier",
+        "id": 33
+    },
+    {
+        "name": "Bird",
+        "id": 34
+    },
+    {
+        "name": "i-mate",
+        "id": 35
+    },
+    {
+        "name": "BlackBerry",
+        "id": 36
+    },
+    {
+        "name": "VK Mobile",
+        "id": 37
+    },
+    {
+        "name": "Qtek",
+        "id": 38
+    },
+    {
+        "name": "Vertu",
+        "id": 39
+    },
+    {
+        "name": "Eten",
+        "id": 40
+    },
+    {
+        "name": "HP",
+        "id": 41
+    },
+    {
+        "name": "BenQ-Siemens",
+        "id": 42
+    },
+    {
+        "name": "XCute",
+        "id": 43
+    },
+    {
+        "name": "Toshiba",
+        "id": 44
+    },
+    {
+        "name": "HTC",
+        "id": 45
+    },
+    {
+        "name": "Asus",
+        "id": 46
+    },
+    {
+        "name": "Gigabyte",
+        "id": 47
+    },
+    {
+        "name": "Apple",
+        "id": 48
+    },
+    {
+        "name": "Thuraya",
+        "id": 49
+    },
+    {
+        "name": "Fujitsu Siemens",
+        "id": 50
+    },
+    {
+        "name": "WND",
+        "id": 51
+    },
+    {
+        "name": "i-mobile",
+        "id": 52
+    },
+    {
+        "name": "Vodafone",
+        "id": 53
+    },
+    {
+        "name": "Sonim",
+        "id": 54
+    },
+    {
+        "name": "T-Mobile",
+        "id": 55
+    },
+    {
+        "name": "MWg",
+        "id": 56
+    },
+    {
+        "name": "AT&T",
+        "id": 57
+    },
+    {
+        "name": "Huawei",
+        "id": 58
+    },
+    {
+        "name": "Acer",
+        "id": 59
+    },
+    {
+        "name": "iNQ",
+        "id": 60
+    },
+    {
+        "name": "Dell",
+        "id": 61
+    },
+    {
+        "name": "ZTE",
+        "id": 62
+    },
+    {
+        "name": "Modu",
+        "id": 63
+    },
+    {
+        "name": "Microsoft",
+        "id": 64
+    },
+    {
+        "name": "Garmin-Asus",
+        "id": 65
+    },
+    {
+        "name": "Micromax",
+        "id": 66
+    },
+    {
+        "name": "BLU",
+        "id": 67
+    },
+    {
+        "name": "Spice",
+        "id": 68
+    },
+    {
+        "name": "Icemobile",
+        "id": 69
+    },
+    {
+        "name": "verykool",
+        "id": 70
+    },
+    {
+        "name": "Orange",
+        "id": 71
+    },
+    {
+        "name": "Plum",
+        "id": 72
+    },
+    {
+        "name": "Lenovo",
+        "id": 73
+    },
+    {
+        "name": "Meizu",
+        "id": 74
+    },
+    {
+        "name": "Celkon",
+        "id": 75
+    },
+    {
+        "name": "Amazon",
+        "id": 76
+    },
+    {
+        "name": "Casio",
+        "id": 77
+    },
+    {
+        "name": "Yezz",
+        "id": 78
+    },
+    {
+        "name": "NIU",
+        "id": 79
+    },
+    {
+        "name": "Xiaomi",
+        "id": 80
+    },
+    {
+        "name": "Parla",
+        "id": 81
+    },
+    {
+        "name": "Oppo",
+        "id": 82
+    },
+    {
+        "name": "Karbonn",
+        "id": 83
+    },
+    {
+        "name": "Jolla",
+        "id": 84
+    },
+    {
+        "name": "XOLO",
+        "id": 85
+    },
+    {
+        "name": "Prestigio",
+        "id": 86
+    },
+    {
+        "name": "Maxwest",
+        "id": 87
+    },
+    {
+        "name": "Allview",
+        "id": 88
+    },
+    {
+        "name": "Cat",
+        "id": 89
+    },
+    {
+        "name": "Archos",
+        "id": 90
+    },
+    {
+        "name": "Unnecto",
+        "id": 91
+    },
+    {
+        "name": "Gionee",
+        "id": 92
+    },
+    {
+        "name": "Emporia",
+        "id": 93
+    },
+    {
+        "name": "Lava",
+        "id": 94
+    },
+    {
+        "name": "OnePlus",
+        "id": 95
+    },
+    {
+        "name": "Wiko",
+        "id": 96
+    },
+    {
+        "name": "Nvidia",
+        "id": 97
+    },
+    {
+        "name": "vivo",
+        "id": 98
+    },
+    {
+        "name": "Yota",
+        "id": 99
+    },
+    {
+        "name": "YU",
+        "id": 100
+    },
+    {
+        "name": "Posh",
+        "id": 101
+    },
+    {
+        "name": "Intex",
+        "id": 102
+    },
+    {
+        "name": "QMobile",
+        "id": 103
+    },
+    {
+        "name": "EE",
+        "id": 104
+    },
+    {
+        "name": "Coolpad",
+        "id": 105
+    },
+    {
+        "name": "Energizer",
+        "id": 106
+    },
+    {
+        "name": "Google",
+        "id": 107
+    },
+    {
+        "name": "BQ",
+        "id": 108
+    },
+    {
+        "name": "LeEco",
+        "id": 109
+    },
+    {
+        "name": "",
+        "id": 110
+    },
+    {
+        "name": "Blackview",
+        "id": 116
+    },
+    {
+        "name": "Razer",
+        "id": 117
+    },
+    {
+        "name": "Realme",
+        "id": 118
+    },
+    {
+        "name": "Infinix",
+        "id": 119
+    },
+    {
+        "name": "Tecno",
+        "id": 120
+    },
+    {
+        "name": "Honor",
+        "id": 121
+    },
+    {
+        "name": "TCL",
+        "id": 123
+    },
+    {
+        "name": "Ulefone",
+        "id": 124
+    },
+    {
+        "name": "Fairphone",
+        "id": 127
+    },
+    {
+        "name": "Nothing",
+        "id": 128
+    },
+    {
+        "name": "Doogee",
+        "id": 129
+    },
+    {
+        "name": "Cubot",
+        "id": 130
+    },
+    {
+        "name": "itel",
+        "id": 131
+    },
+    {
+        "name": "Oukitel",
+        "id": 132
+    },
+    {
+        "name": "HMD",
+        "id": 133
+    },
+    {
+        "name": "Oscal",
+        "id": 134
+    },
+    {
+        "name": "Umidigi",
+        "id": 135
+    },
+    {
+        "name": "RugOne",
+        "id": 136
+    }
+]%     

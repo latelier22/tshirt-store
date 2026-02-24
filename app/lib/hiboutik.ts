@@ -105,3 +105,27 @@ export async function hiboutikGetGrid(opts?: {
   const items: any[] = Array.isArray(json?.data) ? json.data : [];
   return items.map(normalizeImagesFromCache);
 }
+
+
+export async function hiboutikGetProductWithRaw(id: string) {
+  const base = cacheBase();
+
+  const res = await fetch(`${base}/api/products/${encodeURIComponent(id)}`, {
+    cache: "no-store",
+  });
+
+  const text = await res.text();
+  const json = text ? safeJsonParse<any>(text) : null;
+
+  if (!res.ok) {
+    throw new Error(`CACHE product ${res.status}: ${text.slice(0, 300)}`);
+  }
+
+  const p = json?.data;
+  if (!p) return null;
+
+  return {
+    data: normalizeImagesFromCache(p),
+    raw: json?.raw ?? null,
+  };
+}

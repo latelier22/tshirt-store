@@ -1,0 +1,77 @@
+[
+  {
+    "product_id": 1,
+    "product_model": "MICRO-USB CABLE (FAIRPLAY)",
+    "product_barcode": "2430000000010",
+    "product_brand": 1,
+    "product_supplier": 1,
+    "product_price": "10.00",
+    "product_discount_price": "0.00",
+    "product_supply_price": "1.14",
+    "points_in": 0,
+    "points_out": 0,
+    "product_category": 11,
+    "product_size_type": 0,
+    "product_package": 0,
+    "product_stock_management": 0,
+    "product_supplier_reference": "",
+    "product_vat": 1,
+    "product_display": 1,
+    "product_display_www": 1,
+    "product_arch": 0,
+    "product_desc": "**FAIRPLAY Senecio Câble Micro-USB** (2.4A)\r\n\r\n- Câble Data Micro-USB vers USB-A (1m)\r\n- Chargeur Rapide Micro-USB Français CE\r\n- pour Samsung, Huawei, LG, Sony, Xiaomi Redmi, Wiko, etc",
+    "product_font_color": "#000000",
+    "product_bck_btn_color": "#cccccc",
+    "product_storage_location": "",
+    "products_ref_ext": "",
+    "product_order": 283,
+    "weight": "0.00",
+    "multiple": 1,
+    "short_label": "",
+    "accounting_account": "",
+    "misc_date": "0000-00-00",
+    "stock_available_global": 1,
+    "misc_decimal": "0.00",
+    "misc_int": 0,
+    "misc_varchar": "",
+    "misc_varchar2": "",
+    "misc_text": "",
+    "updated_at": "2026-02-24 06:28:43",
+    "product_specific_rules": [],
+    "images": [
+      {
+        "url": "https://multimediaservices22.hiboutik.com/api/products_images/mini_1.jpg",
+        "width": "100",
+        "height": "100",
+        "image_name": "mini_1.jpg"
+      },
+      {
+        "url": "https://multimediaservices22.hiboutik.com/api/products_images/big_1-1.jpg",
+        "width": 1000,
+        "height": 1000,
+        "image_name": "big_1-1.jpg"
+      }
+    ],
+    "product_brand_name": "FAIRPLAY",
+    "product_vat_value": "0.20000",
+    "tags": [
+      {
+        "tag_id": 3,
+        "tag_label": "Affaire du jour",
+        "tag_cat": 1
+      }
+    ],
+    "associated_products": [],
+    "linked_products": [],
+    "stock_available": [
+      {
+        "product_id": 1,
+        "product_size": 0,
+        "warehouse_id": 1,
+        "stock_available": 1,
+        "inventory_alert": 0
+      }
+    ],
+    "active_sizes": []
+  }
+]
