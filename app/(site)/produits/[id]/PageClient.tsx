@@ -7,6 +7,10 @@ import ProductCarousel from "@/components/ProductCarousel";
 import { HiboutikProduct } from "@/app/types/ProductType";
 import { formatPrice } from "@/app/lib/utils";
 
+import { getColorThemeFromTags } from "@/components/tags/couleur";
+
+
+
 function isInStock(p: HiboutikProduct): boolean {
   const anyP: any = p;
   if (anyP.stock_available_global === 1 || anyP.stock_available_global === true) return true;
@@ -16,8 +20,20 @@ function isInStock(p: HiboutikProduct): boolean {
     ? v.some((e: any) => e?.stock_available === 1 || e?.stock_available === true)
     : v === 1 || v === true;
 }
-export default function ProduitPage({ product, associated = [] }: { product: HiboutikProduct; associated?: HiboutikProduct[] })
- {
+export default function ProduitPage({
+  product, associated = [], tags }: {
+    product: HiboutikProduct;
+    associated?: HiboutikProduct[];
+    tags?: {
+      tag_id: number; tag: string;
+      tag_cat_id: number;
+      tag_cat: string
+    }[]
+  }) {
+
+  
+  console.log("[PAGE CLIENT] product=", product, "associated=", associated, "tags=", tags);
+
   const hasPromo =
     (product.product_discount_price ?? "0") !== "0" &&
     Number(product.product_discount_price) > 0;
@@ -31,8 +47,14 @@ export default function ProduitPage({ product, associated = [] }: { product: Hib
     new Set([product.image, ...(product.images ?? []), product.thumb].filter(Boolean) as string[])
   ).filter((s) => String(s).trim() !== ""); // ✅ évite src=""
 
+  const themeClass = getColorThemeFromTags(tags);
+  
   return (
-    <main className="mx-auto max-w-5xl mt-28 p-6">
+    <main
+  className={`mx-auto max-w-5xl mt-28 p-6 transition-colors duration-500 ${
+    themeClass ?? ""
+  }`}
+>
       <div className="grid md:grid-cols-2 gap-8">
         <ProductGallery images={images} />
 
@@ -63,6 +85,16 @@ export default function ProduitPage({ product, associated = [] }: { product: Hib
             </span>
           </div>
 
+          {tags?.length ? (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {tags.map((t) => (
+                <span key={t.tag_id} className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-800">
+                  {t.tag_cat} — {t.tag}
+                </span>
+              ))}
+            </div>
+          ) : null}
+
           {product.product_desc && product.product_desc.trim() !== "" && (
             <p className="mt-4 whitespace-pre-wrap">{product.product_desc}</p>
           )}
@@ -81,13 +113,13 @@ export default function ProduitPage({ product, associated = [] }: { product: Hib
         {associated.length > 0 && (
           <div className="md:col-span-2 mt-6">
             <ProductCarousel
-  title="Produits associés"
-  subtitle="Souvent pris avec ce produit"
-  products={associated}
-  autoplay={false}
-  showArrows={true}
-  toProxy={(u) => u}   // ✅ NE RE-PROXY PAS
-/>
+              title="Produits associés"
+              subtitle="Souvent pris avec ce produit"
+              products={associated}
+              autoplay={false}
+              showArrows={true}
+              toProxy={(u) => u}   // ✅ NE RE-PROXY PAS
+            />
           </div>
         )}
       </div>

@@ -1,6 +1,6 @@
 // app/categories/[slug]/page.tsx
 import PageClient from "./PageClient";
-import { hiboutikGetGrid } from "@/app/lib/hiboutik";
+import { hiboutikGetGrid } from "@/app/lib/hiboutik-cache";
 import { HiboutikProduct } from "@/app/types/ProductType";
 
 function parseIdFromSlug(slug?: string): number | null {

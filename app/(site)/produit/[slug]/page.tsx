@@ -1,6 +1,6 @@
 import { headers } from 'next/headers'
-import ProductGallery from '../../../components/ProductGallery'
-import CheckoutButton from '../../../components/CheckoutButton'
+import ProductGallery from '../../../../components/ProductGallery'
+import CheckoutButton from '../../../../components/CheckoutButton'
 
 interface Product {
   slug: string

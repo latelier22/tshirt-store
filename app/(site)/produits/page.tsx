@@ -1,6 +1,6 @@
 import PageClient from "./PageClient";
-import { HiboutikProduct } from "../types/ProductType";
-import { hiboutikGetGrid } from "@/app/lib/hiboutik";
+import { HiboutikProduct } from "../../types/ProductType";
+import { hiboutikGetGrid } from "@/app/lib/hiboutik-cache";
 
 export default async function HiboutikGridPage() {
   const products = (await hiboutikGetGrid({

@@ -1,131 +1,90 @@
-// app/lib/hiboutik.ts
+import { safeJsonParse } from "./utils";
 
-// ✅ On ne lit plus Hiboutik direct.
-// ✅ On lit ton cache VPS : https://api.multimedia-services.fr
-// ✅ On garde le proxy d’images /api/hiboutik/image (côté Next) pour ne rien casser.
+import { HiboutikTagCategory } from "@/app/types/ProductType";
+import { TagIndexEntry } from "@/app/types/ProductType";
 
-function cacheBase() {
-  const base = process.env.CACHE_API_BASE || "https://api.multimedia-services.fr";
-  return base.replace(/\/+$/, "");
+
+function hiboutikBase() {
+  const account = process.env.HIBOUTIK_ACCOUNT;
+  if (!account) throw new Error("HIBOUTIK_ACCOUNT manquant");
+  return `https://${account}.hiboutik.com`;
 }
 
-// helper pour fabriquer une URL proxy locale (OK pour le client)
-function toProxy(u?: string) {
-  return u ? `/api/hiboutik/image?src=${encodeURIComponent(u)}` : undefined;
+function hiboutikAuthHeader() {
+  const login = process.env.HIBOUTIK_LOGIN;
+  const apiKey = process.env.HIBOUTIK_API_KEY;
+  if (!login) throw new Error("HIBOUTIK_LOGIN manquant");
+  if (!apiKey) throw new Error("HIBOUTIK_API_KEY manquant");
+
+  const token = Buffer.from(`${login}:${apiKey}`).toString("base64");
+  return `Basic ${token}`;
 }
 
-function safeJsonParse<T = any>(s: string): T | null {
-  try {
-    return JSON.parse(s) as T;
-  } catch {
-    return null;
-  }
-}
+async function hiboutikFetch(path: string) {
+  const base = hiboutikBase();
+  const url = `${base}${path.startsWith("/") ? path : `/${path}`}`;
 
-function normalizeImagesFromCache(p: any) {
-  // Ton VPS peut renvoyer :
-  // - images: string[]
-  // - images_json: string (JSON array)
-  // - ou rien (dans ce cas on laisse vide)
-  let images: string[] = [];
-
-  if (Array.isArray(p?.images)) {
-    images = p.images.filter((u: any) => typeof u === "string");
-  } else if (typeof p?.images_json === "string") {
-    const parsed = safeJsonParse<any[]>(p.images_json);
-    if (Array.isArray(parsed)) images = parsed.filter((u) => typeof u === "string");
-  }
-
-  const thumb = p?.thumb ?? images[0];
-  const image = p?.image ?? images[0];
-
-  return {
-    ...p,
-    images: images.map(toProxy),
-    thumb: toProxy(thumb),
-    image: toProxy(image),
-  };
-}
-
-export async function hiboutikGetProduct(id: string) {
-  const base = cacheBase();
-
-  const res = await fetch(`${base}/api/products/${encodeURIComponent(id)}`, {
-    // 🔥 comme le VPS répond en ms, tu peux laisser no-store
+  const res = await fetch(url, {
     cache: "no-store",
+    headers: {
+      Accept: "application/json",
+      Authorization: hiboutikAuthHeader(),
+    },
   });
 
   const text = await res.text();
   const json = text ? safeJsonParse<any>(text) : null;
 
   if (!res.ok) {
-    throw new Error(`CACHE product ${res.status}: ${text.slice(0, 300)}`);
+    throw new Error(`Hiboutik error ${res.status} — ${text.slice(0, 500)}`);
   }
 
-  const p = json?.data;
-  if (!p) return null;
-
-  return normalizeImagesFromCache(p);
-}
-
-export async function hiboutikGetGrid(opts?: {
-  order_by?: string;
-  sort?: "ASC" | "DESC";
-  from?: number;
-  to?: number;
-  category?: string;
-  category_slug?: string;
-  product_category?: string;
-  include_children?: "0" | "1";
-  q?: string;
-}) {
-  const base = cacheBase();
-
-  const url = new URL(`${base}/api/products`);
-  url.searchParams.set("from", String(opts?.from ?? 0));
-  url.searchParams.set("to", String(opts?.to ?? 99));
-
-  if (opts?.order_by) url.searchParams.set("order_by", opts.order_by);
-  if (opts?.sort) url.searchParams.set("sort", opts.sort);
-
-  if (opts?.q) url.searchParams.set("q", opts.q);
-
-  if (opts?.category) url.searchParams.set("category", opts.category);
-  if (opts?.category_slug) url.searchParams.set("category_slug", opts.category_slug);
-
-  if (opts?.product_category) url.searchParams.set("product_category", opts.product_category);
-  if (opts?.include_children) url.searchParams.set("include_children", opts.include_children);
-
-  const res = await fetch(url.toString(), { cache: "no-store" });
-  const text = await res.text();
-  const json = text ? safeJsonParse<any>(text) : null;
-
-  if (!res.ok) throw new Error(`CACHE products ${res.status}: ${text.slice(0, 300)}`);
-
-  const items: any[] = Array.isArray(json?.data) ? json.data : [];
-  return items.map(normalizeImagesFromCache);
-}
-
-
-export async function hiboutikGetProductWithRaw(id: string) {
-  const base = cacheBase();
-
-  const res = await fetch(`${base}/api/products/${encodeURIComponent(id)}`, {
-    cache: "no-store",
-  });
-
-  const text = await res.text();
-  const json = text ? safeJsonParse<any>(text) : null;
-
-  if (!res.ok) {
-    throw new Error(`CACHE product ${res.status}: ${text.slice(0, 300)}`);
+  // si Hiboutik renvoie un truc non-JSON (rare), on protège
+  if (json == null) {
+    throw new Error(`Hiboutik invalid JSON — ${text.slice(0, 500)}`);
   }
 
-  const p = json?.data;
-  if (!p) return null;
+  return json;
+}
 
-  return {
-    data: normalizeImagesFromCache(p),
-    raw: json?.raw ?? null,
-  };
+// petit cache mémoire (évite de refetch tout le temps)
+let _tagsCache: { ts: number; index: Map<number, TagIndexEntry> } | null = null;
+
+export async function hiboutikGetTagsProductsIndex(ttlMs = 10 * 60 * 1000) {
+  const now = Date.now();
+  if (_tagsCache && now - _tagsCache.ts < ttlMs) return _tagsCache.index;
+
+  const cats = (await hiboutikFetch("/api/tags/products")) as HiboutikTagCategory[];
+
+  const index = new Map<number, TagIndexEntry>();
+  for (const cat of Array.isArray(cats) ? cats : []) {
+    for (const t of Array.isArray(cat.tag_details) ? cat.tag_details : []) {
+      const id = Number(t.tag_id);
+      if (!id) continue;
+      index.set(id, {
+        tag_id: id,
+        tag: t.tag,
+        tag_cat_id: Number(cat.tag_cat_id),
+        tag_cat: cat.tag_cat,
+      });
+    }
+  }
+
+  _tagsCache = { ts: now, index };
+  return index;
+}
+
+// Résout raw.tags (IDs ou objets) => [{tag_id, tag, tag_cat...}]
+export async function resolveProductTags(rawTags: any) {
+  const idx = await hiboutikGetTagsProductsIndex();
+
+  const ids: number[] = (Array.isArray(rawTags) ? rawTags : [])
+    .map((x: any) => Number(x?.tag_id ?? x?.id ?? x))
+    .filter((n: any) => Number.isFinite(n) && n > 0);
+
+  const unique = Array.from(new Set(ids));
+
+  return unique
+    .map((id) => idx.get(id))
+    .filter(Boolean) as TagIndexEntry[];
 }

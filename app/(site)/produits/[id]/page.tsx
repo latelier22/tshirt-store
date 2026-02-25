@@ -5,7 +5,9 @@ import {
   hiboutikGetGrid,
   hiboutikGetProduct,
   hiboutikGetProductWithRaw,
-} from "@/app/lib/hiboutik";
+} from "@/app/lib/hiboutik-cache";
+
+import { resolveProductTags } from "@/app/lib/hiboutik";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -71,6 +73,10 @@ export default async function ProduitPage({ params }: Props) {
 
   const product = detail?.data ?? null;
   const raw = detail?.raw ?? null;
+
+  console.log("[PAGE] fetched product=", product, "raw=", raw);
+
+  const tagsResolved = await resolveProductTags(raw?.tags);
 
   if (!product) {
     return (
@@ -168,5 +174,5 @@ export default async function ProduitPage({ params }: Props) {
   // 7) clean + limite
   associatedFinal = uniqById(associatedFinal).slice(0, MAX_ASSOC);
 
-  return <PageClient product={product} associated={associatedFinal} />;
+  return <PageClient product={product} associated={associatedFinal} tags={tagsResolved} />;
 }
