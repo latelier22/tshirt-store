@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-import Header from '../../components/Header'
 
 export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', message: '' })
@@ -11,7 +10,6 @@ export default function Contact() {
 
   return (
     <main className="pt-24 p-8 max-w-3xl mx-auto text-gray-800 leading-relaxed">
-      <Header />
 
       <h1 className="text-3xl font-bold mb-6 text-center">Contact</h1>
       <p className="text-center mb-8">
