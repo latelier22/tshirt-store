@@ -1,10 +1,7 @@
-import Header from "../../components/Header"
-
 export default function MentionsLegales() {
   return (
     <main className="pt-24 p-8 max-w-4xl mx-auto text-gray-800 leading-relaxed">
-      <Header />
-
+     
       <h1 className="text-3xl font-bold mb-6 text-center">Mentions légales</h1>
 
       <section className="space-y-4">

@@ -88,3 +88,9 @@ export async function resolveProductTags(rawTags: any) {
     .map((id) => idx.get(id))
     .filter(Boolean) as TagIndexEntry[];
 }
+
+// app/lib/hiboutik.ts
+export async function hiboutikGetTagsProducts() {
+  // Hiboutik renvoie un array direct
+  return await hiboutikFetch("/api/tags/products");
+}

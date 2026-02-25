@@ -1,10 +1,8 @@
-import Header from "../../components/Header"
 
 export default function Confidentialite() {
   return (
     <main className="pt-24 p-8 max-w-4xl mx-auto text-gray-800 leading-relaxed">
-      <Header />
-
+      
       <h1 className="text-3xl font-bold mb-6 text-center">
         Politique de Confidentialité & Sécurité des Données
       </h1>
