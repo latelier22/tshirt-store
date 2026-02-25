@@ -1,8 +1,6 @@
+// app/lib/hiboutik.ts
 import { safeJsonParse } from "./utils";
-
-import { HiboutikTagCategory } from "@/app/types/ProductType";
-import { TagIndexEntry } from "@/app/types/ProductType";
-
+import type { HiboutikTagCategory, HiboutikResolvedTag } from "@/app/types/ProductType";
 
 function hiboutikBase() {
   const account = process.env.HIBOUTIK_ACCOUNT;
@@ -33,13 +31,11 @@ async function hiboutikFetch(path: string) {
   });
 
   const text = await res.text();
-  const json = text ? safeJsonParse<any>(text) : null;
+  const json = text ? safeJsonParse<unknown>(text) : null;
 
   if (!res.ok) {
     throw new Error(`Hiboutik error ${res.status} — ${text.slice(0, 500)}`);
   }
-
-  // si Hiboutik renvoie un truc non-JSON (rare), on protège
   if (json == null) {
     throw new Error(`Hiboutik invalid JSON — ${text.slice(0, 500)}`);
   }
@@ -47,25 +43,30 @@ async function hiboutikFetch(path: string) {
   return json;
 }
 
-// petit cache mémoire (évite de refetch tout le temps)
-let _tagsCache: { ts: number; index: Map<number, TagIndexEntry> } | null = null;
+// ✅ export brut pour /diaporama
+export async function hiboutikGetTagsProducts(): Promise<HiboutikTagCategory[]> {
+  return (await hiboutikFetch("/api/tags/products")) as HiboutikTagCategory[];
+}
+
+// petit cache mémoire
+let _tagsCache: { ts: number; index: Map<number, HiboutikResolvedTag> } | null = null;
 
 export async function hiboutikGetTagsProductsIndex(ttlMs = 10 * 60 * 1000) {
   const now = Date.now();
   if (_tagsCache && now - _tagsCache.ts < ttlMs) return _tagsCache.index;
 
-  const cats = (await hiboutikFetch("/api/tags/products")) as HiboutikTagCategory[];
+  const cats = await hiboutikGetTagsProducts();
 
-  const index = new Map<number, TagIndexEntry>();
-  for (const cat of Array.isArray(cats) ? cats : []) {
-    for (const t of Array.isArray(cat.tag_details) ? cat.tag_details : []) {
+  const index = new Map<number, HiboutikResolvedTag>();
+  for (const cat of cats) {
+    for (const t of cat.tag_details ?? []) {
       const id = Number(t.tag_id);
       if (!id) continue;
       index.set(id, {
         tag_id: id,
-        tag: t.tag,
+        tag: String(t.tag ?? ""),
         tag_cat_id: Number(cat.tag_cat_id),
-        tag_cat: cat.tag_cat,
+        tag_cat: String(cat.tag_cat ?? ""),
       });
     }
   }
@@ -74,8 +75,8 @@ export async function hiboutikGetTagsProductsIndex(ttlMs = 10 * 60 * 1000) {
   return index;
 }
 
-// Résout raw.tags (IDs ou objets) => [{tag_id, tag, tag_cat...}]
-export async function resolveProductTags(rawTags: any) {
+// Résout raw.tags (IDs ou objets) => HiboutikResolvedTag[]
+export async function resolveProductTags(rawTags: unknown): Promise<HiboutikResolvedTag[]> {
   const idx = await hiboutikGetTagsProductsIndex();
 
   const ids: number[] = (Array.isArray(rawTags) ? rawTags : [])
@@ -86,11 +87,5 @@ export async function resolveProductTags(rawTags: any) {
 
   return unique
     .map((id) => idx.get(id))
-    .filter(Boolean) as TagIndexEntry[];
-}
-
-// app/lib/hiboutik.ts
-export async function hiboutikGetTagsProducts() {
-  // Hiboutik renvoie un array direct
-  return await hiboutikFetch("/api/tags/products");
+    .filter((x): x is HiboutikResolvedTag => !!x);
 }

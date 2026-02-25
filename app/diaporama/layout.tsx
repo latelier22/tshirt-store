@@ -1,4 +1,15 @@
-// app/diaporama/layout.tsx
-export default function DiaporamaLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+import "../globals.css";
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="fr">
+      <body>
+        {children}
+      </body>
+    </html>
+  );
 }

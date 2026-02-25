@@ -1,5 +1,5 @@
 // app/diaporama/[slot]/page.tsx
-import TabletSocketClient from "./TabletSocketClient";
+import { redirect } from "next/navigation";
 import DiaporamaClient from "./DiaporamaClient";
 import { hiboutikGetGrid } from "@/app/lib/hiboutik-cache";
 import type { HiboutikProduct } from "@/app/types/ProductType";
@@ -10,41 +10,37 @@ type Props = {
   params: Promise<{ slot: string }>;
 };
 
-function hasImage(p: any) {
-  if (p?.image) return true;
-  if (p?.thumb) return true;
-  if (Array.isArray(p?.images) && p.images.length > 0) return true;
+function hasImage(p: HiboutikProduct) {
+  if (p.image) return true;
+  if (p.thumb) return true;
+  if (Array.isArray(p.images) && p.images.length > 0) return true;
   return false;
 }
 
 export default async function DiaporamaSlotPage({ params }: Props) {
   const { slot } = await params;
 
-  // ✅ SLOT SPECIAL : TABLETTE => écoute socket et redirige
+  // ✅ tablette => redirect vers ton Sylius wait
   if (slot === "tablette") {
-    return <TabletSocketClient />;
+    redirect("https://boutique.multimedia-services.fr/tablet/wait?device=TAB1");
   }
 
-  // sinon diaporama classique
   const products = (await hiboutikGetGrid({
     order_by: "updated_at",
     sort: "DESC",
     from: 0,
-    to: 300,
+    to: 400,
   })) as HiboutikProduct[];
 
-  const withImages = (Array.isArray(products) ? products : []).filter(hasImage);
+  const withImages = (products ?? []).filter(hasImage);
 
   if (!withImages.length) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-black text-white p-8">
-        <div className="text-center">
-          <div className="text-2xl font-semibold">Diaporama</div>
-          <div className="opacity-80 mt-2">Aucun produit avec image.</div>
-        </div>
+        Aucun produit avec image.
       </main>
     );
   }
 
-  return <DiaporamaClient slot={slot} products={withImages} />;
+  return <DiaporamaClient products={withImages} />;
 }

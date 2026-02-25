@@ -113,12 +113,17 @@ export default function Header() {
     <header className="w-full bg-black text-white fixed top-0 left-0 z-20 shadow-md">
       <div className="max-w-6xl mx-auto flex justify-between items-center px-6 py-4">
         {/* Logo + nom du site */}
-        <Link href="/" className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3">
+
+        <Link href="/diaporama" className="flex items-center space-x-3">
           <img src="/logo.png" alt="Multimédia services" className="h-10 w-auto" />
-          <h1 className="text-lg md:text-xl font-bold tracking-wide">
+                  </Link>
+        <Link href="/" className="flex items-center space-x-3">
+                    <h1 className="text-lg md:text-xl font-bold tracking-wide">
             Multimédia services
           </h1>
         </Link>
+        </div>
 
         {/* Menu principal (desktop) */}
         <nav className="hidden md:flex items-center space-x-8 text-sm font-medium">
