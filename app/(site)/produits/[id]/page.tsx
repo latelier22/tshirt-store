@@ -74,8 +74,6 @@ export default async function ProduitPage({ params }: Props) {
   const product = detail?.data ?? null;
   const raw = detail?.raw ?? null;
 
-  console.log("[PAGE] fetched product=", product, "raw=", raw);
-
   const tagsResolved = await resolveProductTags(raw?.tags);
 
   if (!product) {
@@ -104,8 +102,6 @@ export default async function ProduitPage({ params }: Props) {
       // ignore
     }
   }
-
-  console.log("[ASSOC] data.cat=", (product as any)?.product_category, "raw.cat=", raw?.product_category);
 
   // 4) base + exclusions
   let associatedFinal: HiboutikProduct[] = uniqById(associatedReal);

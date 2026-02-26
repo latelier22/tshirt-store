@@ -10,6 +10,7 @@ type HiboutikCategory = {
   category_name: string
   category_id_parent: number
   category_enabled?: 0 | 1
+  category_enabled_www?: 0 | 1
   category_position?: number
 }
 
@@ -26,7 +27,7 @@ function slugify(s: string) {
 }
 
 function buildCategoryTree(cats: HiboutikCategory[]): CatNode[] {
-  const filtered = cats.filter((c) => c.category_enabled !== 0)
+  const filtered = cats.filter((c) => c.category_enabled !== 0 && c.category_enabled_www !== 0)
 
   filtered.sort(
     (a, b) => (a.category_position ?? 0) - (b.category_position ?? 0)
@@ -97,6 +98,8 @@ export default function Header() {
 
   const tree = useMemo(() => buildCategoryTree(cats), [cats])
   const columns = useMemo(() => chunk(tree, 6), [tree]) // 6 colonnes max (tu ajustes)
+
+  
 
   // Fermeture mega menu au click outside
   useEffect(() => {

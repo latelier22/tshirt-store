@@ -31,9 +31,6 @@ export default function ProduitPage({
     }[]
   }) {
 
-  
-  console.log("[PAGE CLIENT] product=", product, "associated=", associated, "tags=", tags);
-
   const hasPromo =
     (product.product_discount_price ?? "0") !== "0" &&
     Number(product.product_discount_price) > 0;
