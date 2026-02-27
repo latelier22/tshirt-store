@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 const DEFAULT = "fr_FR";
 const OTHER_LOCALES = new Set(["en_US"]); // ajoute ici tes autres locales visibles
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // 1) Si quelqu’un tape /fr_FR/... => redirige vers /...
