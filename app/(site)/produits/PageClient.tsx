@@ -104,7 +104,7 @@ export default function PageClient({ products }: Props) {
 
   return (
     <div className="mx-auto max-w-6xl px-6">
-         <ProductUpdatesListener />
+         {/* <ProductUpdatesListener /> */}
       <ProductFilters total={products.length} shown={base.length} matched={matched.length} />
 
       {query.trim() && (
