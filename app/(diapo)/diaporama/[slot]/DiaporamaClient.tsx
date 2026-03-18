@@ -11,6 +11,18 @@ function firstImage(p: any) {
   return p?.image ?? p?.thumb ?? list[0];
 }
 
+function getPrice(p: any) {
+  const hasPromo =
+    (p.product_discount_price ?? "0") !== "0" &&
+    Number(p.product_discount_price) > 0;
+
+  return {
+    price: hasPromo ? p.product_discount_price : p.product_price,
+    hasPromo,
+    oldPrice: p.product_price,
+  };
+}
+
 export default function DiaporamaClient({
   products,
   portrait = "0",
@@ -19,14 +31,14 @@ export default function DiaporamaClient({
   portrait?: string;
 }) {
   const items = products ?? [];
+  const ITEMS_PER_PAGE = 9;
 
   const [mode, setMode] = React.useState<"grid" | "diapo">("grid");
-  const [index, setIndex] = React.useState(0);
   const [gridPage, setGridPage] = React.useState(0);
+  const [index, setIndex] = React.useState(0);
   const [paused, setPaused] = React.useState(false);
   const [zoomItem, setZoomItem] = React.useState<HiboutikProduct | null>(null);
-
-  const ITEMS_PER_PAGE = 9;
+  const [fade, setFade] = React.useState(true);
 
   const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
 
@@ -35,16 +47,38 @@ export default function DiaporamaClient({
     gridPage * ITEMS_PER_PAGE + ITEMS_PER_PAGE
   );
 
-  // 🔥 DIAPORAMA AUTO
+  // 🔥 CYCLE AUTO
   React.useEffect(() => {
-    if (mode !== "diapo" || paused || !items.length) return;
+    if (paused || !items.length) return;
 
-    const t = setInterval(() => {
-      setIndex((i) => (i + 1) % items.length);
-    }, 4000);
+    if (mode === "grid") {
+      const t = setTimeout(() => {
+        setMode("diapo");
+        setIndex(gridPage * ITEMS_PER_PAGE);
+      }, 4000);
+      return () => clearTimeout(t);
+    }
 
-    return () => clearInterval(t);
-  }, [mode, paused, items.length]);
+    if (mode === "diapo") {
+      const t = setTimeout(() => {
+        const next = index + 1;
+
+        setFade(false);
+
+        setTimeout(() => {
+          if ((next % ITEMS_PER_PAGE === 0) || next >= items.length) {
+            setMode("grid");
+            setGridPage((p) => (p + 1) % totalPages);
+          } else {
+            setIndex(next);
+          }
+          setFade(true);
+        }, 300);
+      }, 3000);
+
+      return () => clearTimeout(t);
+    }
+  }, [mode, index, paused, items.length, gridPage, totalPages]);
 
   const isPortrait = portrait === "1" || portrait === "-1";
   const angle = portrait === "-1" ? -90 : 90;
@@ -68,111 +102,139 @@ export default function DiaporamaClient({
       <div style={containerStyle}>
         <Header />
 
-        {/* ================= GRID MODE ================= */}
+        {/* ================= GRID ================= */}
         {mode === "grid" && (
           <div className="w-full h-full flex flex-col p-6">
             <div className="grid grid-cols-3 grid-rows-3 gap-4 flex-1">
               {currentGrid.map((p, idx) => {
-                const img = firstImage(p);
+                const { price, hasPromo, oldPrice } = getPrice(p);
 
                 return (
                   <div
                     key={idx}
-                    className="relative bg-black cursor-pointer"
+                    className="relative cursor-pointer"
                     onClick={() => setZoomItem(p)}
                   >
                     <Image
-                      src={img}
-                      alt={p.product_model ?? ""}
+                      src={firstImage(p)}
+                      alt=""
                       fill
                       unoptimized
                       className="object-contain"
                     />
 
+                    {/* BADGE PROMO */}
+                    {hasPromo && (
+                      <div className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
+                        PROMO
+                      </div>
+                    )}
+
                     <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-2 text-sm">
                       <div className="truncate">{p.product_model}</div>
-                      <div className="font-bold">
-                        {formatPrice(
-                          (p.product_discount_price ?? "0") !== "0"
-                            ? p.product_discount_price
-                            : p.product_price
-                        )}
+
+                      <div className="font-bold text-lg">
+                        {formatPrice(price ?? "0")}
                       </div>
+
+                      {hasPromo && (
+                        <div className="text-xs line-through opacity-70">
+                          {formatPrice(oldPrice ?? "0")}
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
               })}
             </div>
 
-            {/* NAV GRID */}
-            <div className="flex justify-between items-center mt-4">
-              <button
-                onClick={() =>
-                  setGridPage((p) => (p - 1 + totalPages) % totalPages)
-                }
-              >
-                ◀
-              </button>
+            {/* NAV PAUSE */}
+            {paused && (
+              <div className="flex justify-between mt-4">
+                <button
+                  onClick={() =>
+                    setGridPage((p) => (p - 1 + totalPages) % totalPages)
+                  }
+                >
+                  ◀
+                </button>
 
-              <button onClick={() => setMode("diapo")}>
-                ▶ Lancer diaporama
-              </button>
+                <button onClick={() => setPaused(false)}>▶ Reprendre</button>
 
-              <button
-                onClick={() => setGridPage((p) => (p + 1) % totalPages)}
-              >
-                ▶
-              </button>
-            </div>
+                <button
+                  onClick={() =>
+                    setGridPage((p) => (p + 1) % totalPages)
+                  }
+                >
+                  ▶
+                </button>
+              </div>
+            )}
           </div>
         )}
 
-        {/* ================= DIAPO MODE ================= */}
+        {/* ================= DIAPO ================= */}
         {mode === "diapo" && (
-          <div
-            className="w-full h-full relative"
-            onClick={() => setIndex((i) => (i + 1) % items.length)}
-          >
+          <div className="w-full h-full relative">
             {(() => {
               const p: any = items[index];
-              const img = firstImage(p);
+              const { price, hasPromo, oldPrice } = getPrice(p);
 
               return (
                 <>
                   <Image
-                    src={img}
-                    alt={p.product_model}
+                    src={firstImage(p)}
+                    alt=""
                     fill
                     unoptimized
-                    className="object-contain"
+                    className={`
+                      object-contain
+                      transition-opacity duration-500
+                      ${fade ? "opacity-100" : "opacity-0"}
+                      animate-[zoomSlow_6s_linear]
+                    `}
                   />
+
+                  {/* BADGE PROMO */}
+                  {hasPromo && (
+                    <div className="absolute top-10 left-10 bg-red-600 text-white text-2xl px-4 py-2 rounded">
+                      PROMO
+                    </div>
+                  )}
 
                   <div className="absolute bottom-0 left-0 right-0 p-10 bg-gradient-to-t from-black/80">
                     <div className="text-5xl font-bold">
                       {p.product_model}
                     </div>
-                    <div className="text-4xl mt-2">
-                      {formatPrice(
-                        (p.product_discount_price ?? "0") !== "0"
-                          ? p.product_discount_price
-                          : p.product_price
-                      )}
+
+                    <div className="text-4xl mt-4 font-semibold drop-shadow-[0_0_10px_rgba(255,255,255,0.6)] animate-[pulsePrice_2s_infinite]">
+                      {formatPrice(price ?? "0")}
                     </div>
+
+                    {hasPromo && (
+                      <div className="text-xl line-through opacity-70 mt-1">
+                        {formatPrice(oldPrice ?? "0")}
+                      </div>
+                    )}
                   </div>
                 </>
               );
             })()}
-
-            {/* CONTROLS */}
-            <div className="absolute top-4 right-4 flex gap-4">
-              <button onClick={() => setPaused((p) => !p)}>
-                {paused ? "▶" : "⏸"}
-              </button>
-
-              <button onClick={() => setMode("grid")}>☰</button>
-            </div>
           </div>
         )}
+
+        {/* ================= CONTROLS ================= */}
+        <div className="absolute top-4 right-4 z-50">
+          <button
+            onClick={() => {
+              setPaused((p) => !p);
+              setMode("grid");
+            }}
+            className="text-xl"
+          >
+            {paused ? "▶" : "⏸"}
+          </button>
+        </div>
 
         {/* ================= ZOOM ================= */}
         {zoomItem && (
