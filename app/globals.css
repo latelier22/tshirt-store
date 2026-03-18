@@ -74,7 +74,6 @@ html {
   transform: rotate(90deg) translate(-50%, -50%);
   transform-origin: center center;
 }
-
 @keyframes zoomSlow {
   from { transform: scale(1); }
   to { transform: scale(1.08); }
@@ -83,5 +82,11 @@ html {
 @keyframes pulsePrice {
   0% { transform: scale(1); }
   50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes pulseBadge {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.12); }
   100% { transform: scale(1); }
 }

@@ -23,6 +23,62 @@ function getPrice(p: any) {
   };
 }
 
+function getEtatTag(p: any) {
+  const tags = p?.tags ?? [];
+  return tags.find((t: any) => t.tag_cat === "ETAT");
+}
+
+function getEtatFromSlugs(p: any) {
+  const slugs = (p?.tags_slug ?? []).map((s: string) => s.toLowerCase());
+
+  // 🔵 NEUF
+  if (slugs.some(s => s === "neuf")) {
+    return { label: "NEUF", color: "bg-blue-600" };
+  }
+
+  // 🟢 TRÈS BON
+  if (slugs.some(s => s.includes("tres-bon"))) {
+    return { label: "TB", color: "bg-green-600" };
+  }
+
+  // 🟡 BON
+  if (slugs.some(s => s.includes("bon-etat"))) {
+    return { label: "BON", color: "bg-yellow-400 text-black" };
+  }
+
+  // 🔴 CORRECT
+  if (slugs.some(s => s.includes("correct"))) {
+    return { label: "OK", color: "bg-red-600" };
+  }
+
+  return null;
+}
+
+
+function getEtatStyle(tag?: string) {
+  if (!tag) return null;
+
+  const t = tag.toLowerCase();
+
+  if (t === "neuf") {
+    return { label: "NEUF", color: "bg-blue-600" };
+  }
+
+  if (t.includes("très bon")) {
+    return { label: "TB", color: "bg-green-600" };
+  }
+
+  if (t.includes("bon état")) {
+    return { label: "BON", color: "bg-yellow-400 text-black" };
+  }
+
+  if (t.includes("correct")) {
+    return { label: "OK", color: "bg-red-600" };
+  }
+
+  return null;
+}
+
 export default function DiaporamaClient({
   products,
   portrait = "0",
@@ -32,6 +88,7 @@ export default function DiaporamaClient({
 }) {
   const items = products ?? [];
   const ITEMS_PER_PAGE = 9;
+  console.log("DiaporamaClient items", items);
 
   const [mode, setMode] = React.useState<"grid" | "diapo">("grid");
   const [gridPage, setGridPage] = React.useState(0);
@@ -108,66 +165,68 @@ export default function DiaporamaClient({
             <div className="grid grid-cols-3 grid-rows-3 gap-4 flex-1">
               {currentGrid.map((p, idx) => {
                 const { price, hasPromo, oldPrice } = getPrice(p);
+                const etat = getEtatTag(p);
+                const etatStyle = getEtatFromSlugs(p);
 
                 return (
                   <div
-                    key={idx}
-                    className="relative cursor-pointer"
-                    onClick={() => setZoomItem(p)}
-                  >
-                    <Image
-                      src={firstImage(p)}
-                      alt=""
-                      fill
-                      unoptimized
-                      className="object-contain"
-                    />
+  key={idx}
+  className="relative cursor-pointer overflow-hidden"
+  onClick={() => setZoomItem(p)}
+>
+  <Image
+    src={firstImage(p)}
+    alt=""
+    fill
+    unoptimized
+    className="object-contain"
+  />
 
-                    {/* BADGE PROMO */}
-                    {hasPromo && (
-                      <div className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
-                        PROMO
-                      </div>
-                    )}
+  {/* 🔵 ETAT */}
+  {etatStyle && (
+    <div className={`
+      absolute top-20 right-20
+      w-30 h-30 rounded-full
+      flex items-center justify-center
+      text-xs font-bold
+      shadow-lg
+      z-20
+      ${etatStyle.color}
+    `}>
+      {etatStyle.label}
+    </div>
+  )}
 
-                    <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-2 text-sm">
-                      <div className="truncate">{p.product_model}</div>
+  {/* 🔴 PROMO */}
+  {hasPromo && (
+    <div className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded z-20">
+      PROMO
+    </div>
+  )}
 
-                      <div className="font-bold text-lg">
-                        {formatPrice(price ?? "0")}
-                      </div>
+  <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-2 text-sm z-10">
+    <div className="truncate">{p.product_model}</div>
 
-                      {hasPromo && (
-                        <div className="text-xs line-through opacity-70">
-                          {formatPrice(oldPrice ?? "0")}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+    <div className="font-bold text-lg">
+      {formatPrice(price ?? "0")}
+    </div>
+
+    {hasPromo && (
+      <div className="text-xs line-through opacity-70">
+        {formatPrice(oldPrice ?? "0")}
+      </div>
+    )}
+  </div>
+</div>
                 );
               })}
             </div>
 
-            {/* NAV PAUSE */}
             {paused && (
               <div className="flex justify-between mt-4">
-                <button
-                  onClick={() =>
-                    setGridPage((p) => (p - 1 + totalPages) % totalPages)
-                  }
-                >
-                  ◀
-                </button>
-
+                <button onClick={() => setGridPage((p) => (p - 1 + totalPages) % totalPages)}>◀</button>
                 <button onClick={() => setPaused(false)}>▶ Reprendre</button>
-
-                <button
-                  onClick={() =>
-                    setGridPage((p) => (p + 1) % totalPages)
-                  }
-                >
-                  ▶
-                </button>
+                <button onClick={() => setGridPage((p) => (p + 1) % totalPages)}>▶</button>
               </div>
             )}
           </div>
@@ -179,6 +238,8 @@ export default function DiaporamaClient({
             {(() => {
               const p: any = items[index];
               const { price, hasPromo, oldPrice } = getPrice(p);
+              const etat = getEtatTag(p);
+              const etatStyle = getEtatFromSlugs(p);
 
               return (
                 <>
@@ -195,7 +256,22 @@ export default function DiaporamaClient({
                     `}
                   />
 
-                  {/* BADGE PROMO */}
+                  {/* 🔵 ETAT */}
+                 {etatStyle && (
+  <div className={`
+    absolute top-50 right-50
+    w-64 h-64 rounded-full
+    flex items-center justify-center
+    text-xl font-bold
+    shadow-lg
+    z-20
+    ${etatStyle.color}
+  `}>
+    {etatStyle.label}
+  </div>
+)}
+
+                  {/* 🔴 PROMO */}
                   {hasPromo && (
                     <div className="absolute top-10 left-10 bg-red-600 text-white text-2xl px-4 py-2 rounded">
                       PROMO
@@ -203,9 +279,7 @@ export default function DiaporamaClient({
                   )}
 
                   <div className="absolute bottom-0 left-0 right-0 p-10 bg-gradient-to-t from-black/80">
-                    <div className="text-5xl font-bold">
-                      {p.product_model}
-                    </div>
+                    <div className="text-5xl font-bold">{p.product_model}</div>
 
                     <div className="text-4xl mt-4 font-semibold drop-shadow-[0_0_10px_rgba(255,255,255,0.6)] animate-[pulsePrice_2s_infinite]">
                       {formatPrice(price ?? "0")}
@@ -223,7 +297,7 @@ export default function DiaporamaClient({
           </div>
         )}
 
-        {/* ================= CONTROLS ================= */}
+        {/* CONTROLS */}
         <div className="absolute top-4 right-4 z-50">
           <button
             onClick={() => {
@@ -236,7 +310,7 @@ export default function DiaporamaClient({
           </button>
         </div>
 
-        {/* ================= ZOOM ================= */}
+        {/* ZOOM */}
         {zoomItem && (
           <div className="absolute inset-0 bg-black/95 flex items-center justify-center z-50">
             <div className="relative w-[80%] h-[80%]">
