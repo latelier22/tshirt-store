@@ -102,6 +102,8 @@ export default function PageClient({ products }: Props) {
     );
   }
 
+  console.log("Rendering with", { products: products.length, base: base.length, matched: matched.length, others: others.length });
+  console.log("Products sample:", products);
   return (
     <div className="mx-auto max-w-6xl px-6">
          {/* <ProductUpdatesListener /> */}

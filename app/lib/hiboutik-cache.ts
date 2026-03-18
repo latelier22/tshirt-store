@@ -68,6 +68,31 @@ export async function hiboutikGetProduct(id: string) {
   return normalizeImagesFromCache(p);
 }
 
+export async function hiboutikGetProductsByTag(tag: string) {
+  const base = cacheBase();
+
+  const url = new URL(`${base}/api/productsByTag`);
+  url.searchParams.set("tag", tag);
+
+  const res = await fetch(url.toString(), {
+    cache: "no-store",
+  });
+
+  const text = await res.text();
+  const json = text ? safeJsonParse<any>(text) : null;
+
+  if (!res.ok) {
+    throw new Error(`CACHE productsByTag ${res.status}: ${text.slice(0, 300)}`);
+  }
+
+  const items: any[] = Array.isArray(json?.data) ? json.data : [];
+
+  // 🔥 IMPORTANT → normalisation + proxy images
+  return items.map(normalizeImagesFromCache);
+}
+
+
+
 export async function hiboutikGetGrid(opts?: {
   order_by?: string;
   sort?: "ASC" | "DESC";

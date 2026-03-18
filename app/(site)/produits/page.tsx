@@ -4,8 +4,8 @@ import { hiboutikGetGrid } from "@/app/lib/hiboutik-cache";
 
 export default async function HiboutikGridPage() {
   const products = (await hiboutikGetGrid({
-    order_by: "product_id",
-    sort: "ASC",
+    order_by: "updated_at",
+    sort: "DESC",
     from: 0,
     to: 99,
   })) as HiboutikProduct[];
