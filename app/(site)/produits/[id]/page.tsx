@@ -76,6 +76,20 @@ export default async function ProduitPage({ params }: Props) {
 
   const tagsResolved = await resolveProductTags(raw?.tags);
 
+  if (product) {
+  product.images = (product.images || [])
+    .map((img) => decodeURIComponent(img)) // 🔓 decode URL
+    .filter((img) => img.includes('big_')) // 🚫 enlève mini
+    .sort((a, b) => {
+      const getIndex = (url: string) => {
+        const match = url.match(/-(\d+)\./)
+        return match ? parseInt(match[1]) : 0
+      }
+      return getIndex(a) - getIndex(b)
+    })
+    .map((img) => img + '?v=' + product.updatedAt) // 🔥 anti-cache
+}
+
   if (!product) {
     return (
       <main className="mx-auto max-w-3xl p-6">

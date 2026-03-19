@@ -40,9 +40,7 @@ export default function ProduitPage({
   const priceCents = Math.max(0, Math.round(Number(finalPrice) * 100));
   const enStock = isInStock(product);
 
-  const images: string[] = Array.from(
-    new Set([product.image, ...(product.images ?? []), product.thumb].filter(Boolean) as string[])
-  ).filter((s) => String(s).trim() !== ""); // ✅ évite src=""
+  const images = product.images ?? [];
 
   const themeClass = getColorThemeFromTags(tags);
   

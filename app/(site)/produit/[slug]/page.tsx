@@ -8,6 +8,7 @@ interface Product {
   description?: string
   price: number
   images: string[]
+  updatedAt: string
 }
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -24,6 +25,27 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const res = await fetch(`${baseUrl}/data/products.json`, { next: { revalidate: 900 } }) // ✅ 15 min@
   const products: Product[] = await res.json()
   const product = products.find((p) => p.slug === slug)
+
+  if (product) {
+  product.images = (product.images || [])
+    .map((img) => decodeURIComponent(img)) // 🔓 decode URL
+    .filter((img) => img.includes('big_')) // 🚫 enlève mini
+    .sort((a, b) => {
+      const getIndex = (url: string) => {
+        const match = url.match(/-(\d+)\./)
+        return match ? parseInt(match[1]) : 0
+      }
+      return getIndex(a) - getIndex(b)
+    })
+    .map((img) => img + '?v=' + product.updatedAt) // 🔥 anti-cache
+}
+
+console.log('Produit:', {
+  name: product?.name,
+  price: product ? (product.price / 100).toFixed(2) + ' €' : null,
+  images: product?.images,
+})
+
 
   if (!product) {
     return (

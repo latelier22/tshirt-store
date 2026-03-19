@@ -10,5 +10,14 @@ export default async function HiboutikGridPage() {
     to: 99,
   })) as HiboutikProduct[];
 
+  if (products) {
+    products.forEach((p) => {
+      if (p.images) {
+        p.images = p.images.map((img) => decodeURIComponent(img)).filter((img) => img.includes('big_'));
+      }
+    });
+  }
+
+
   return <PageClient products={products} />;
 }

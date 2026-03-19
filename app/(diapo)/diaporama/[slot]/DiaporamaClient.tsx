@@ -29,31 +29,32 @@ function getEtatTag(p: any) {
 }
 
 function getEtatFromSlugs(p: any) {
-  const slugs = (p?.tags_slug ?? []).map((s: string) => s.toLowerCase());
+  const slugs: string[] = (p?.tags_slug ?? []).map((s: string) =>
+    s.toLowerCase()
+  );
 
   // 🔵 NEUF
-  if (slugs.some(s => s === "neuf")) {
+  if (slugs.some((s: string) => s === "neuf")) {
     return { label: "NEUF", color: "bg-blue-600" };
   }
 
   // 🟢 TRÈS BON
-  if (slugs.some(s => s.includes("tres-bon"))) {
+  if (slugs.some((s: string) => s.includes("tres-bon"))) {
     return { label: "TB", color: "bg-green-600" };
   }
 
   // 🟡 BON
-  if (slugs.some(s => s.includes("bon-etat"))) {
+  if (slugs.some((s: string) => s.includes("bon-etat"))) {
     return { label: "BON", color: "bg-yellow-400 text-black" };
   }
 
   // 🔴 CORRECT
-  if (slugs.some(s => s.includes("correct"))) {
+  if (slugs.some((s: string) => s.includes("correct"))) {
     return { label: "OK", color: "bg-red-600" };
   }
 
   return null;
 }
-
 
 function getEtatStyle(tag?: string) {
   if (!tag) return null;

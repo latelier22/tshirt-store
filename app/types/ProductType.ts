@@ -48,6 +48,8 @@ export type HiboutikProduct = {
   thumb?: string;
   image?: string;
 
+  updatedAt?: string;
+
   // ✅ champ (pas une fonction)
   tags?: HiboutikResolvedTag[];
 };
