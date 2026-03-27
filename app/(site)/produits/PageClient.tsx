@@ -54,8 +54,14 @@ function Card({ p }: { p: HiboutikProduct }) {
     >
       {p.image && (
         <div className="relative w-full h-48 mb-3">
-          <Image src={p.image} alt={p.product_model ?? ""} fill className="object-contain" />
-        </div>
+  <Image
+    src={p.image}
+    alt={p.product_model ?? ""}
+    fill
+    sizes="(max-width: 768px) 50vw, 25vw"
+    className="object-contain"
+  />
+</div>
       )}
 
       <h3 className="text-sm font-semibold">{p.product_model}</h3>

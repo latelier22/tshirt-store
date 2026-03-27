@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 
@@ -8,192 +8,106 @@ interface GalleryProps {
 }
 
 export default function ProductGallery({ images }: GalleryProps) {
+  const safeImages = images?.filter(Boolean) ?? []
   const [current, setCurrent] = useState(0)
-  const [zoom, setZoom] = useState(1)
-  const [isDragging, setDragging] = useState(false)
-  const [offset, setOffset] = useState({ x: 0, y: 0 })
-  const containerRef = useRef<HTMLDivElement | null>(null)
   const [isModalOpen, setModalOpen] = useState(false)
-  const [touches, setTouches] = useState<{ distance: number | null }>({ distance: null })
 
-  // 🔍 Zoom molette
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault()
-    const newZoom = Math.min(Math.max(zoom - e.deltaY * 0.001, 1), 3)
-    setZoom(newZoom)
+  if (!safeImages.length) {
+    return (
+      <div className="w-full h-80 flex items-center justify-center text-gray-400">
+        Pas d’image
+      </div>
+    )
   }
 
-  // 🖐️ Drag pour déplacer quand zoomé
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (zoom === 1) return
-    setDragging(true)
-    setOffset({ x: e.clientX, y: e.clientY })
-  }
+  const currentSrc = safeImages[current]
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !containerRef.current) return
-    const dx = e.clientX - offset.x
-    const dy = e.clientY - offset.y
-    containerRef.current.scrollLeft -= dx
-    containerRef.current.scrollTop -= dy
-    setOffset({ x: e.clientX, y: e.clientY })
-  }
-
-  const handleMouseUp = () => setDragging(false)
-
-  // 🤏 Pinch zoom (mobile)
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      const dist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      )
-      if (touches.distance) {
-        const scaleChange = dist / touches.distance
-        const newZoom = Math.min(Math.max(zoom * scaleChange, 1), 3)
-        setZoom(newZoom)
-      }
-      setTouches({ distance: dist })
-    }
-  }
-
-  const handleTouchEnd = () => setTouches({ distance: null })
-
-  // 🔁 Navigation images
-  const nextImage = () => {
-    setCurrent((prev) => (prev + 1) % images.length)
-    setZoom(1)
-  }
-
-  const prevImage = () => {
-    setCurrent((prev) => (prev - 1 + images.length) % images.length)
-    setZoom(1)
-  }
-
-  const handleClickThumb = (index: number) => {
-    setCurrent(index)
-    setZoom(1)
-  }
-
-  const openModal = () => setModalOpen(true)
-  const closeModal = () => {
-    setModalOpen(false)
-    setZoom(1)
-  }
-
-  const currentSrc =
-  images && images[current] && images[current].trim() !== ""
-    ? images[current]
-    : null;
+  const next = () => setCurrent((i) => (i + 1) % safeImages.length)
+  const prev = () => setCurrent((i) => (i - 1 + safeImages.length) % safeImages.length)
 
   return (
     <div className="flex flex-col items-center w-full select-none">
-      {/* 📱 MOBILE : image + miniatures en colonne à droite */}
-      <div className="flex flex-row md:flex-col items-start justify-center w-full">
-        {/* Image principale */}
-        <div
-          ref={containerRef}
-          onWheel={handleWheel}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onClick={openModal}
-          className="relative w-full max-w-md h-80 md:h-96 mb-4 overflow-hidden rounded-xl shadow-lg bg-white cursor-zoom-in"
-        >
-          {currentSrc ? (
-    <Image
-      src={currentSrc}
-      alt={`Image ${current + 1}`}
-      fill
-      draggable={false}
-      className="object-contain"
-    />
-  ) : (
-    <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-      Pas d’image disponible
-    </div>
-  )}
-        </div>
 
-        {/* Miniatures */}
-        <div className="flex flex-col md:flex-row items-center justify-center space-y-2 md:space-y-0 md:space-x-3 ml-3 md:ml-0">
-          {images.map((img, index) => (
+      {/* IMAGE PRINCIPALE */}
+      <div
+        className="relative w-full max-w-md h-80 md:h-96 mb-4 overflow-hidden rounded-xl shadow-lg bg-white cursor-zoom-in"
+        onClick={() => setModalOpen(true)}
+      >
+        <Image
+          src={currentSrc}
+          alt={`Image ${current + 1}`}
+          fill
+          priority
+          sizes="(max-width: 768px) 100vw, 500px"
+          className="object-contain"
+        />
+      </div>
+
+      {/* MINIATURES UNIQUEMENT SI >1 */}
+      {safeImages.length > 1 && (
+        <div className="flex gap-3 flex-wrap justify-center">
+          {safeImages.map((img, i) => (
             <button
               key={img}
-              onClick={() => handleClickThumb(index)}
-              className={`relative w-16 h-16 md:w-20 md:h-20 rounded overflow-hidden border-2 ${
-                index === current ? 'border-black' : 'border-transparent'
+              onClick={() => setCurrent(i)}
+              className={`relative w-16 h-16 rounded overflow-hidden border-2 ${
+                i === current ? 'border-black' : 'border-transparent'
               }`}
             >
               <Image
                 src={img}
-                alt={`Miniature ${index + 1}`}
+                alt={`Miniature ${i + 1}`}
                 fill
-                className="object-cover hover:opacity-80 transition"
+                sizes="64px"
+                className="object-cover"
               />
             </button>
           ))}
         </div>
-      </div>
+      )}
 
-      {/* 🪟 Modale plein écran */}
+      {/* MODALE */}
       {isModalOpen && (
         <div
           className="fixed inset-0 bg-black/90 flex items-center justify-center z-50"
-          onClick={closeModal}
+          onClick={() => setModalOpen(false)}
         >
           <button
+            className="absolute top-6 right-6 text-white"
             onClick={(e) => {
               e.stopPropagation()
-              closeModal()
+              setModalOpen(false)
             }}
-            className="absolute top-6 right-6 text-white text-3xl hover:text-gray-400"
           >
-            <X />
+            <X size={32} />
           </button>
 
-          <div
-            className="relative w-[90vw] h-[80vh] max-w-5xl overflow-hidden cursor-grab"
-            onClick={(e) => e.stopPropagation()}
-            onWheel={handleWheel}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          >
+          <div className="relative w-[90vw] h-[80vh] max-w-5xl">
             <Image
-              src={images[current]}
-              alt={`Image ${current + 1}`}
+              src={currentSrc}
+              alt=""
               fill
+              sizes="100vw"
               className="object-contain"
-              style={{ transform: `scale(${zoom})` }}
             />
 
-            {/* Flèches navigation */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                prevImage()
-              }}
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white text-4xl hover:text-gray-400"
-            >
-              <ChevronLeft size={40} />
-            </button>
+            {safeImages.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => { e.stopPropagation(); prev() }}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-white"
+                >
+                  <ChevronLeft size={40} />
+                </button>
 
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                nextImage()
-              }}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white text-4xl hover:text-gray-400"
-            >
-              <ChevronRight size={40} />
-            </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); next() }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white"
+                >
+                  <ChevronRight size={40} />
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}

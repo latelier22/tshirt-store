@@ -1,4 +1,3 @@
-// components/ProductCarousel.tsx
 "use client";
 
 import React from "react";
@@ -11,8 +10,6 @@ export type HiboutikProduct = {
   product_price?: string;
   product_discount_price?: string;
   images?: string[];
-  thumb?: string;
-  image?: string;
 };
 
 type Props = {
@@ -29,52 +26,25 @@ type Props = {
   showArrows?: boolean;
   cardClassName?: string;
 
-  // Proxy optional (default smart)
   toProxy?: (url?: string) => string | undefined;
-
-  placeholderDataUrl?: string;
 };
 
 function defaultToProxy(u?: string) {
   if (!u) return undefined;
-  // déjà proxy / data url => ne pas re-proxy
   if (u.startsWith("/api/hiboutik/image?src=") || u.startsWith("data:image/")) return u;
   return `/api/hiboutik/image?src=${encodeURIComponent(u)}`;
 }
 
+// ✅ IMAGE PROPRE (UNIQUEMENT big_)
 function firstImage(p: any) {
   const list = Array.isArray(p?.images) ? p.images : [];
-  return p?.image ?? p?.thumb ?? list[0];
+
+  const big = list.find((img: string) => img.includes("big_"));
+  if (big) return big;
+
+  return list[0] ?? null;
 }
 
-const DEFAULT_PLACEHOLDER_SVG = encodeURIComponent(`
-<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500">
-  <defs>
-    <linearGradient id="g" x1="0" x2="1">
-      <stop offset="0" stop-color="#eef2ff"/>
-      <stop offset="1" stop-color="#f8fafc"/>
-    </linearGradient>
-  </defs>
-  <rect width="800" height="500" fill="url(#g)"/>
-  <rect x="40" y="40" width="720" height="420" rx="24" fill="white" stroke="#e5e7eb" stroke-width="4"/>
-  <g fill="#94a3b8">
-    <path d="M240 310l70-80 70 85 55-60 85 95H240z" opacity="0.9"/>
-    <circle cx="330" cy="205" r="28" opacity="0.9"/>
-  </g>
-  <text x="400" y="390" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="28" fill="#64748b">
-    Pas d’image
-  </text>
-</svg>
-`);
-
-function defaultPlaceholderDataUrl() {
-  return `data:image/svg+xml;charset=utf-8,${DEFAULT_PLACEHOLDER_SVG}`;
-}
-
-/**
- * Drag/Swipe qui n'empêche PAS le click (pas de preventDefault au pointerdown).
- * On bloque le click seulement si on a réellement drag.
- */
 function useDragScrollCarousel() {
   const ref = React.useRef<HTMLDivElement | null>(null);
 
@@ -106,7 +76,6 @@ function useDragScrollCarousel() {
 
     if (!dragged.current && Math.abs(dx) > DRAG_THRESHOLD) {
       dragged.current = true;
-      // à partir de là seulement, on capture le pointer
       (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
       e.preventDefault();
     }
@@ -148,10 +117,9 @@ export default function ProductCarousel({
   showArrows = true,
   cardClassName = "w-[80vw] sm:w-[45vw] md:w-[260px] lg:w-[220px]",
   toProxy = defaultToProxy,
-  placeholderDataUrl = defaultPlaceholderDataUrl(),
 }: Props) {
   const items = products ?? [];
-  if (!items.length) return <div className="opacity-70">Aucun produit.</div>;
+  if (!items.length) return null;
 
   const { ref, onPointerDown, onPointerMove, onPointerUp, onClick } = useDragScrollCarousel();
 
@@ -202,19 +170,15 @@ export default function ProductCarousel({
       {showArrows && (
         <>
           <button
-            type="button"
             onClick={scrollPrev}
-            className="hidden md:flex items-center justify-center absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full border bg-white/90 shadow hover:bg-white"
-            aria-label="Précédent"
+            className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full border bg-white/90 shadow"
           >
             ‹
           </button>
 
           <button
-            type="button"
             onClick={scrollNext}
-            className="hidden md:flex items-center justify-center absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full border bg-white/90 shadow hover:bg-white"
-            aria-label="Suivant"
+            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full border bg-white/90 shadow"
           >
             ›
           </button>
@@ -230,51 +194,53 @@ export default function ProductCarousel({
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
-        className="
-          flex gap-4 overflow-x-auto pb-3
-          snap-x snap-mandatory
-          scroll-smooth
-          select-none
-          cursor-grab active:cursor-grabbing
-          touch-pan-y overscroll-x-contain
-        "
+        className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory scroll-smooth select-none cursor-grab active:cursor-grabbing"
       >
         {items.map((p: any) => {
           const rawImg = firstImage(p);
-          const img = toProxy(rawImg) ?? placeholderDataUrl;
-          const href = hrefForProduct ? hrefForProduct(p) : `/produits/${p.product_id}`;
+          const safeImg = rawImg && rawImg.trim() !== "" ? rawImg : undefined;
+          const img = toProxy(safeImg);
+
+          const href = hrefForProduct
+            ? hrefForProduct(p)
+            : `/produits/${p.product_id}`;
 
           return (
             <Link
               key={p.product_id}
               href={href}
-              onClick={onClick} // ✅ CLIC OK
+              onClick={onClick}
               data-carousel-card
-              className={`
-                snap-start
-                border rounded-xl p-3 hover:shadow-lg transition bg-white
-                shrink-0
-                ${cardClassName}
-              `}
+              className={`snap-start border rounded-xl p-3 hover:shadow-lg bg-white shrink-0 ${cardClassName}`}
             >
               <div className="relative w-full h-36 mb-2">
-                <Image
-                  src={img}
-                  alt={p.product_model ?? "Produit"}
-                  fill
-                  draggable={false}
-                  onDragStart={(e) => e.preventDefault()}
-                  className="object-contain pointer-events-none"
-                />
+                {img ? (
+                  <Image
+                    src={img}
+                    alt={p.product_model ?? "Produit"}
+                    fill
+                    sizes="(max-width: 640px) 80vw, (max-width: 1024px) 45vw, 220px"
+                    className="object-contain pointer-events-none"
+                    draggable={false}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
+                    Pas d’image
+                  </div>
+                )}
               </div>
 
-              <div className="text-sm font-semibold line-clamp-2">{p.product_model}</div>
+              <div className="text-sm font-semibold line-clamp-2">
+                {p.product_model}
+              </div>
 
               <div className="mt-1 flex items-baseline gap-2">
                 {p.product_discount_price && Number(p.product_discount_price) > 0 ? (
                   <>
                     <div className="text-lg font-bold">{p.product_discount_price} €</div>
-                    <div className="text-sm line-through opacity-60">{p.product_price} €</div>
+                    <div className="text-sm line-through opacity-60">
+                      {p.product_price} €
+                    </div>
                   </>
                 ) : (
                   <div className="text-lg font-bold">{p.product_price} €</div>
@@ -283,10 +249,6 @@ export default function ProductCarousel({
             </Link>
           );
         })}
-      </div>
-
-      <div className="flex justify-center mt-2 opacity-70">
-        <span className="text-xs">Swipe / glisse pour naviguer</span>
       </div>
     </section>
   );
