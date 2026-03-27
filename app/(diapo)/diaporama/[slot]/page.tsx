@@ -39,6 +39,8 @@ export default async function DiaporamaSlotPage({ params, searchParams }: Props)
 
   const products: HiboutikProduct[] = await hiboutikGetProductsByTag(slot);
 
+  
+
   if (!products.length) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-black text-white p-8">

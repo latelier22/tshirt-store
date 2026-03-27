@@ -5,6 +5,7 @@ import Image from "next/image";
 import type { HiboutikProduct } from "@/app/types/ProductType";
 import { formatPrice } from "@/app/lib/utils";
 import Header from "@/components/Header";
+import EtiquetteProduit from "./Etiquette";
 
 type BadgeStyle = {
   label: string;
@@ -17,6 +18,8 @@ type Frame = {
   width: number;
   height: number;
 };
+
+type DiapoPhase = "hero" | "label" | "exit";
 
 function firstImage(p: any) {
   const list = Array.isArray(p?.images) ? p.images : [];
@@ -149,16 +152,112 @@ function computeContainFrame(
   return { left, top, width, height };
 }
 
+function getEtatImageTopRightStyle(
+  pad: number,
+  maxWidth: number
+): React.CSSProperties {
+  return {
+    top: `${pad}px`,
+    right: `${pad}px`,
+    maxWidth: `${maxWidth}px`,
+  };
+}
+
+function getPromoImageTopLeftStyle(pad: number): React.CSSProperties {
+  return {
+    top: `${pad}px`,
+    left: `${pad}px`,
+  };
+}
+
+function getInfoVisualBottomStyle(
+  rotationMode: string,
+  bandDepth: number
+): React.CSSProperties {
+  // bas visuel de l'image
+  // 0   => bottom
+  // 1   => right
+  // -1  => left
+
+  if (rotationMode === "1") {
+    return {
+      top: 0,
+      bottom: 0,
+      right: 0,
+      width: `${bandDepth}px`,
+    };
+  }
+
+  if (rotationMode === "-1") {
+    return {
+      top: 0,
+      bottom: 0,
+      left: 0,
+      width: `${bandDepth}px`,
+    };
+  }
+
+  return {
+    left: 0,
+    right: 0,
+    bottom: 0,
+  };
+}
+
+function getInfoGradientClass(rotationMode: string): string {
+  if (rotationMode === "1") {
+    return "bg-gradient-to-l from-black/88 via-black/68 to-transparent";
+  }
+
+  if (rotationMode === "-1") {
+    return "bg-gradient-to-r from-black/88 via-black/68 to-transparent";
+  }
+
+  return "bg-gradient-to-t from-black/88 via-black/68 to-transparent";
+}
+
+function getInfoMotionClass(
+  rotationMode: string,
+  phase: DiapoPhase,
+  large: boolean
+): string {
+  if (!large) {
+    return "opacity-100 translate-x-0 translate-y-0";
+  }
+
+  if (rotationMode === "1") {
+    if (phase === "hero") return "opacity-0 translate-x-8";
+    if (phase === "exit") return "opacity-0 translate-x-4";
+    return "opacity-100 translate-x-0";
+  }
+
+  if (rotationMode === "-1") {
+    if (phase === "hero") return "opacity-0 -translate-x-8";
+    if (phase === "exit") return "opacity-0 -translate-x-4";
+    return "opacity-100 translate-x-0";
+  }
+
+  if (phase === "hero") return "opacity-0 translate-y-8";
+  if (phase === "exit") return "opacity-0 translate-y-4";
+  return "opacity-100 translate-y-0";
+}
+
 function ProductVisual({
   product,
   fade = true,
   large = false,
   onClick,
+  showInfo = true,
+  rotationMode = "0",
+  phase = "label",
 }: {
   product: any;
   fade?: boolean;
   large?: boolean;
   onClick?: () => void;
+  showInfo?: boolean;
+  rotationMode?: string;
+  phase?: DiapoPhase;
 }) {
   const wrapperRef = React.useRef<HTMLDivElement | null>(null);
   const [box, setBox] = React.useState({ width: 0, height: 0 });
@@ -172,10 +271,9 @@ function ProductVisual({
     if (!el) return;
 
     const update = () => {
-      const rect = el.getBoundingClientRect();
       setBox({
-        width: rect.width,
-        height: rect.height,
+        width: el.clientWidth || 0,
+        height: el.clientHeight || 0,
       });
     };
 
@@ -202,13 +300,17 @@ function ProductVisual({
 
   const infoPadX = large ? 28 : 12;
   const infoPadBottom = large ? 28 : 12;
+  const infoBandDepth = large ? 240 : 90;
+
   const titleClass = large ? "text-5xl font-bold" : "text-sm font-medium";
   const priceClass = large
-    ? "text-4xl mt-4 font-semibold drop-shadow-[0_0_10px_rgba(255,255,255,0.6)] animate-[pulsePrice_2s_infinite]"
+    ? "text-4xl mt-4 font-semibold drop-shadow-[0_0_10px_rgba(255,255,255,0.6)] animate-[pulsePrice_2.8s_infinite]"
     : "text-lg font-bold";
   const oldPriceClass = large
     ? "text-xl line-through opacity-70 mt-1"
     : "text-xs line-through opacity-70";
+
+  const infoMotionClass = getInfoMotionClass(rotationMode, phase, large);
 
   return (
     <div ref={wrapperRef} className="absolute inset-0" onClick={onClick}>
@@ -219,9 +321,9 @@ function ProductVisual({
         unoptimized
         className={`
           object-contain
-          transition-opacity duration-500
+          transition-opacity duration-700
           ${fade ? "opacity-100" : "opacity-0"}
-          ${large ? "animate-[zoomSlow_6s_linear]" : ""}
+          ${large ? "animate-[zoomSlow_8s_linear]" : ""}
         `}
         onLoad={(e) => {
           const target = e.currentTarget as HTMLImageElement;
@@ -232,63 +334,73 @@ function ProductVisual({
         }}
       />
 
-      {frame && etatStyle && (
-        <div
-          className={`
-            absolute z-20 rounded-full font-bold shadow-lg leading-tight text-right
-            ${badgeText} ${badgePadding} ${etatStyle.color}
-          `}
-          style={{
-            top: `${frame.top + badgePad}px`,
-            right: `${Math.max(box.width - (frame.left + frame.width) + badgePad, 0)}px`,
-            maxWidth: `${Math.max(frame.width * 0.72, 120)}px`,
-          }}
-        >
-          {etatStyle.label}
-        </div>
-      )}
-
-      {frame && hasPromo && (
-        <div
-          className={`
-            absolute z-20 rounded-full bg-red-600 text-white font-bold shadow-lg
-            ${promoText} ${promoPadding}
-          `}
-          style={{
-            top: `${frame.top + promoPad}px`,
-            left: `${frame.left + promoPad}px`,
-          }}
-        >
-          PROMO
-        </div>
-      )}
-
       {frame && (
         <div
           className="absolute z-10"
           style={{
             left: `${frame.left}px`,
+            top: `${frame.top}px`,
             width: `${frame.width}px`,
-            bottom: `${Math.max(box.height - (frame.top + frame.height), 0)}px`,
+            height: `${frame.height}px`,
           }}
         >
-          <div
-            className="bg-gradient-to-t from-black/85 via-black/65 to-transparent"
-            style={{
-              paddingLeft: `${infoPadX}px`,
-              paddingRight: `${infoPadX}px`,
-              paddingTop: large ? "80px" : "36px",
-              paddingBottom: `${infoPadBottom}px`,
-            }}
-          >
-            <div className={titleClass}>{product.product_model}</div>
+          {etatStyle && (
+            <div
+              className={`
+                absolute z-30 rounded-full font-bold shadow-lg leading-tight text-right
+                ${badgeText} ${badgePadding} ${etatStyle.color}
+              `}
+              style={getEtatImageTopRightStyle(
+                badgePad,
+                Math.max(frame.width - badgePad * 2, 120)
+              )}
+            >
+              {etatStyle.label}
+            </div>
+          )}
 
-            <div className={priceClass}>{formatPrice(price ?? "0")}</div>
+          {hasPromo && (
+            <div
+              className={`
+                absolute z-30 rounded-full bg-red-600 text-white font-bold shadow-lg
+                ${promoText} ${promoPadding}
+              `}
+              style={getPromoImageTopLeftStyle(promoPad)}
+            >
+              PROMO
+            </div>
+          )}
 
-            {hasPromo && (
-              <div className={oldPriceClass}>{formatPrice(oldPrice ?? "0")}</div>
-            )}
-          </div>
+          {showInfo && (
+            <div
+              className={`
+                absolute z-20 overflow-hidden
+                transition-all duration-900 ease-[cubic-bezier(0.22,1,0.36,1)]
+                ${infoMotionClass}
+              `}
+              style={getInfoVisualBottomStyle(rotationMode, infoBandDepth)}
+            >
+              <div
+                className={`${getInfoGradientClass(rotationMode)} flex h-full w-full flex-col justify-end`}
+                style={{
+                  paddingLeft: `${infoPadX}px`,
+                  paddingRight: `${infoPadX}px`,
+                  paddingTop: large ? "80px" : "36px",
+                  paddingBottom: `${infoPadBottom}px`,
+                }}
+              >
+                <div className={titleClass}>{product.product_model}</div>
+
+                <div className={priceClass}>{formatPrice(price ?? "0")}</div>
+
+                {hasPromo && (
+                  <div className={oldPriceClass}>
+                    {formatPrice(oldPrice ?? "0")}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -311,6 +423,7 @@ export default function DiaporamaClient({
   const [paused, setPaused] = React.useState(false);
   const [zoomItem, setZoomItem] = React.useState<HiboutikProduct | null>(null);
   const [fade, setFade] = React.useState(true);
+  const [diapoPhase, setDiapoPhase] = React.useState<DiapoPhase>("hero");
 
   const totalPages = Math.max(1, Math.ceil(items.length / ITEMS_PER_PAGE));
 
@@ -329,18 +442,44 @@ export default function DiaporamaClient({
     setMode("grid");
   }, [totalPages]);
 
+  const advanceToNext = React.useCallback(() => {
+    if (!items.length) return;
+
+    const next = index + 1;
+
+    if (next >= items.length) {
+      setMode("grid");
+      setGridPage(0);
+      setIndex(0);
+      setFade(true);
+      setDiapoPhase("hero");
+      return;
+    }
+
+    if (next % ITEMS_PER_PAGE === 0) {
+      setMode("grid");
+      setGridPage((p) => (p + 1) % totalPages);
+      setIndex(next);
+      setFade(true);
+      setDiapoPhase("hero");
+      return;
+    }
+
+    setIndex(next);
+    setFade(true);
+    setDiapoPhase("hero");
+  }, [index, items.length, totalPages]);
+
   const nextProduct = React.useCallback(() => {
     if (!items.length) return;
 
+    setDiapoPhase("exit");
     setFade(false);
 
     window.setTimeout(() => {
-      const next = (index + 1) % items.length;
-      setIndex(next);
-      setGridPage(Math.floor(next / ITEMS_PER_PAGE));
-      setFade(true);
-    }, 180);
-  }, [index, items.length]);
+      advanceToNext();
+    }, 760);
+  }, [items.length, advanceToNext]);
 
   React.useEffect(() => {
     if (paused || !items.length) return;
@@ -349,36 +488,37 @@ export default function DiaporamaClient({
       const t = setTimeout(() => {
         setMode("diapo");
         setIndex(gridPage * ITEMS_PER_PAGE);
-      }, 4000);
+        setFade(true);
+        setDiapoPhase("hero");
+      }, 5000);
 
       return () => clearTimeout(t);
     }
 
     if (mode === "diapo") {
-      const t = setTimeout(() => {
-        const next = index + 1;
+      setFade(true);
+      setDiapoPhase("hero");
 
+      const t1 = window.setTimeout(() => {
+        setDiapoPhase("label");
+      }, 900);
+
+      const t2 = window.setTimeout(() => {
+        setDiapoPhase("exit");
         setFade(false);
+      }, 4600);
 
-        setTimeout(() => {
-          if (next >= items.length) {
-            setMode("grid");
-            setGridPage(0);
-            setIndex(0);
-          } else if (next % ITEMS_PER_PAGE === 0) {
-            setMode("grid");
-            setGridPage((p) => (p + 1) % totalPages);
-            setIndex(next);
-          } else {
-            setIndex(next);
-          }
-          setFade(true);
-        }, 300);
-      }, 3000);
+      const t3 = window.setTimeout(() => {
+        advanceToNext();
+      }, 5400);
 
-      return () => clearTimeout(t);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+        clearTimeout(t3);
+      };
     }
-  }, [mode, index, paused, items.length, gridPage, totalPages]);
+  }, [mode, index, paused, items.length, gridPage, advanceToNext]);
 
   const isPortrait = portrait === "1" || portrait === "-1";
   const angle = portrait === "-1" ? -90 : 90;
@@ -398,20 +538,24 @@ export default function DiaporamaClient({
       };
 
   return (
-    <div className="fixed inset-0 bg-black text-white overflow-hidden">
+    <div className="fixed inset-0 overflow-hidden bg-black text-white">
       <div style={containerStyle}>
-        <Header />
+        {mode === "grid" && <Header />}
 
         {mode === "grid" && (
-          <div className="w-full h-full flex flex-col p-6">
-            <div className="grid grid-cols-3 grid-rows-3 gap-4 flex-1">
+          <div className="flex h-full w-full flex-col p-6">
+            <div className="grid flex-1 grid-cols-3 grid-rows-3 gap-4">
               {currentGrid.map((p, idx) => (
                 <div
-                  key={idx}
-                  className="relative cursor-pointer overflow-hidden rounded-2xl bg-black"
+                  key={`${p.product_id ?? idx}-${idx}`}
+                  className="relative cursor-pointer overflow-hidden rounded-2xl bg-amber-500"
                   onClick={() => setZoomItem(p)}
                 >
-                  <ProductVisual product={p} />
+                  <ProductVisual
+                    product={p}
+                    rotationMode={portrait}
+                    phase="label"
+                  />
                 </div>
               ))}
             </div>
@@ -441,14 +585,113 @@ export default function DiaporamaClient({
         )}
 
         {mode === "diapo" && items[index] && (
-          <div className="w-full h-full relative">
-            <div className="absolute inset-0 cursor-pointer" onClick={nextProduct}>
-              <ProductVisual product={items[index]} fade={fade} large />
-            </div>
+          <div className="h-full w-full p-6">
+            {!isPortrait ? (
+              <div
+                className={`
+                  flex h-full w-full gap-6 overflow-hidden
+                  transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]
+                  ${
+                    diapoPhase === "exit"
+                      ? "translate-x-12 opacity-0"
+                      : "translate-x-0 opacity-100"
+                  }
+                `}
+              >
+                <div
+                  className="
+                    shrink-0 overflow-hidden
+                    transition-[width,opacity,transform] duration-900 ease-[cubic-bezier(0.22,1,0.36,1)]
+                  "
+                  style={{
+                    width: diapoPhase === "hero" ? 0 : 390,
+                    maxWidth: "34%",
+                    opacity: diapoPhase === "hero" ? 0 : 1,
+                    transform:
+                      diapoPhase === "hero"
+                        ? "translateX(-24px)"
+                        : diapoPhase === "exit"
+                          ? "translateX(-12px)"
+                          : "translateX(0)",
+                  }}
+                >
+                  <div className="h-full w-[390px] max-w-full">
+                    <EtiquetteProduit product={items[index]} landscape />
+                  </div>
+                </div>
+
+                <div
+                  className="relative min-w-0 flex-1 cursor-pointer overflow-hidden rounded-2xl bg-black"
+                  onClick={nextProduct}
+                >
+                  <ProductVisual
+                    key={`diapo-${items[index]?.product_id}-${index}`}
+                    product={items[index]}
+                    fade={fade}
+                    large
+                    showInfo={true}
+                    rotationMode={portrait}
+                    phase={diapoPhase}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div
+                className={`
+                  flex h-full w-full flex-col gap-4 overflow-hidden
+                  transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]
+                  ${
+                    diapoPhase === "exit"
+                      ? "-translate-y-12 opacity-0"
+                      : "translate-y-0 opacity-100"
+                  }
+                `}
+              >
+                <div
+                  className="relative min-h-0 flex-1 cursor-pointer overflow-hidden rounded-2xl bg-black"
+                  onClick={nextProduct}
+                >
+                  <ProductVisual
+                    key={`diapo-${items[index]?.product_id}-${index}`}
+                    product={items[index]}
+                    fade={fade}
+                    large
+                    showInfo={true}
+                    rotationMode={portrait}
+                    phase={diapoPhase}
+                  />
+                </div>
+
+                <div
+                  className="
+                    shrink-0 overflow-hidden
+                    transition-[height,opacity,transform] duration-900 ease-[cubic-bezier(0.22,1,0.36,1)]
+                  "
+                  style={{
+                    height: diapoPhase === "hero" ? 0 : 430,
+                    maxHeight: "44%",
+                    opacity: diapoPhase === "hero" ? 0 : 1,
+                    transform:
+                      diapoPhase === "hero"
+                        ? "translateY(24px)"
+                        : diapoPhase === "exit"
+                          ? "translateY(12px)"
+                          : "translateY(0)",
+                  }}
+                >
+                  <div className="h-[430px] max-h-full w-full">
+                    <EtiquetteProduit
+                      product={items[index]}
+                      landscape={false}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        <div className="absolute top-4 right-4 z-50">
+        <div className="absolute right-4 top-4 z-50">
           <button
             onClick={() => {
               if (paused) {
@@ -465,8 +708,8 @@ export default function DiaporamaClient({
         </div>
 
         {zoomItem && (
-          <div className="absolute inset-0 bg-black/95 flex items-center justify-center z-50">
-            <div className="relative w-[80%] h-[80%]">
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/95">
+            <div className="relative h-[80%] w-[80%]">
               <Image
                 src={firstImage(zoomItem)}
                 alt={zoomItem.product_model ?? ""}
@@ -477,7 +720,7 @@ export default function DiaporamaClient({
             </div>
 
             <button
-              className="absolute top-4 right-4 text-3xl"
+              className="absolute right-4 top-4 text-3xl"
               onClick={() => setZoomItem(null)}
             >
               ✕

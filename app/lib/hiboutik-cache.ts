@@ -33,7 +33,9 @@ function normalizeImagesFromCache(p: any) {
     images = p.images.filter((u: any) => typeof u === "string");
   } else if (typeof p?.images_json === "string") {
     const parsed = safeJsonParse<any[]>(p.images_json);
-    if (Array.isArray(parsed)) images = parsed.filter((u) => typeof u === "string");
+    if (Array.isArray(parsed)) {
+      images = parsed.filter((u) => typeof u === "string");
+    }
   }
 
   const thumb = p?.thumb ?? images[0];
@@ -47,11 +49,21 @@ function normalizeImagesFromCache(p: any) {
   };
 }
 
+function parseAttributesFromMiscText(miscText: any) {
+  if (Array.isArray(miscText)) return miscText;
+
+  if (typeof miscText === "string" && miscText.trim()) {
+    const parsed = safeJsonParse<any[]>(miscText);
+    return Array.isArray(parsed) ? parsed : [];
+  }
+
+  return [];
+}
+
 export async function hiboutikGetProduct(id: string) {
   const base = cacheBase();
 
   const res = await fetch(`${base}/api/products/${encodeURIComponent(id)}`, {
-    // 🔥 comme le VPS répond en ms, tu peux laisser no-store
     cache: "no-store",
   });
 
@@ -65,7 +77,48 @@ export async function hiboutikGetProduct(id: string) {
   const p = json?.data;
   if (!p) return null;
 
-  return normalizeImagesFromCache(p);
+  const raw = json?.raw ?? null;
+  const miscText = raw?.misc_text ?? p?.misc_text ?? "";
+  const attributes = parseAttributesFromMiscText(miscText);
+
+  return normalizeImagesFromCache({
+    ...p,
+    raw,
+    misc_text: miscText,
+    attributes,
+  });
+}
+
+export async function hiboutikGetProductWithRaw(id: string) {
+  const base = cacheBase();
+
+  const res = await fetch(`${base}/api/products/${encodeURIComponent(id)}`, {
+    cache: "no-store",
+  });
+
+  const text = await res.text();
+  const json = text ? safeJsonParse<any>(text) : null;
+
+  if (!res.ok) {
+    throw new Error(`CACHE product ${res.status}: ${text.slice(0, 300)}`);
+  }
+
+  const p = json?.data;
+  if (!p) return null;
+
+  const raw = json?.raw ?? null;
+  const miscText = raw?.misc_text ?? p?.misc_text ?? "";
+  const attributes = parseAttributesFromMiscText(miscText);
+
+  return {
+    data: normalizeImagesFromCache({
+      ...p,
+      raw,
+      misc_text: miscText,
+      attributes,
+    }),
+    raw,
+  };
 }
 
 export async function hiboutikGetProductsByTag(tag: string) {
@@ -87,11 +140,57 @@ export async function hiboutikGetProductsByTag(tag: string) {
 
   const items: any[] = Array.isArray(json?.data) ? json.data : [];
 
-  // 🔥 IMPORTANT → normalisation + proxy images
-  return items.map(normalizeImagesFromCache);
+  console.log(`Hiboutik productsByTag "${tag}"`, {
+    count: items.length,
+    items,
+  });
+
+  const detailedItems = await Promise.all(
+    items.map(async (item) => {
+      try {
+        const detail = await hiboutikGetProductWithRaw(String(item.product_id));
+
+        if (!detail?.data) {
+          return normalizeImagesFromCache({
+            ...item,
+            attributes: [],
+          });
+        }
+
+        const detailData = detail.data;
+        const raw = detail.raw ?? null;
+        const miscText =
+          raw?.misc_text ??
+          detailData?.misc_text ??
+          item?.misc_text ??
+          "";
+
+        const attributes = parseAttributesFromMiscText(miscText);
+
+        console.log(`attributes for product ${item?.product_id}:`, attributes);
+
+        // ✅ on garde les images de l’item de la liste si elles existent déjà
+        // ✅ sinon on prend celles du détail
+        return normalizeImagesFromCache({
+          ...detailData,
+          ...item,
+          raw,
+          misc_text: miscText,
+          attributes,
+        });
+      } catch (e) {
+        console.error(`Erreur détail produit ${item?.product_id}`, e);
+
+        return normalizeImagesFromCache({
+          ...item,
+          attributes: [],
+        });
+      }
+    })
+  );
+
+  return detailedItems;
 }
-
-
 
 export async function hiboutikGetGrid(opts?: {
   order_by?: string;
@@ -118,39 +217,22 @@ export async function hiboutikGetGrid(opts?: {
   if (opts?.category) url.searchParams.set("category", opts.category);
   if (opts?.category_slug) url.searchParams.set("category_slug", opts.category_slug);
 
-  if (opts?.product_category) url.searchParams.set("product_category", opts.product_category);
-  if (opts?.include_children) url.searchParams.set("include_children", opts.include_children);
+  if (opts?.product_category) {
+    url.searchParams.set("product_category", opts.product_category);
+  }
+
+  if (opts?.include_children) {
+    url.searchParams.set("include_children", opts.include_children);
+  }
 
   const res = await fetch(url.toString(), { cache: "no-store" });
   const text = await res.text();
   const json = text ? safeJsonParse<any>(text) : null;
 
-  if (!res.ok) throw new Error(`CACHE products ${res.status}: ${text.slice(0, 300)}`);
+  if (!res.ok) {
+    throw new Error(`CACHE products ${res.status}: ${text.slice(0, 300)}`);
+  }
 
   const items: any[] = Array.isArray(json?.data) ? json.data : [];
   return items.map(normalizeImagesFromCache);
-}
-
-
-export async function hiboutikGetProductWithRaw(id: string) {
-  const base = cacheBase();
-
-  const res = await fetch(`${base}/api/products/${encodeURIComponent(id)}`, {
-    cache: "no-store",
-  });
-
-  const text = await res.text();
-  const json = text ? safeJsonParse<any>(text) : null;
-
-  if (!res.ok) {
-    throw new Error(`CACHE product ${res.status}: ${text.slice(0, 300)}`);
-  }
-
-  const p = json?.data;
-  if (!p) return null;
-
-  return {
-    data: normalizeImagesFromCache(p),
-    raw: json?.raw ?? null,
-  };
 }

@@ -3,6 +3,12 @@
 import React from "react";
 import { formatPrice } from "@/app/lib/utils";
 
+type ProductAttr = {
+  code?: string;
+  label?: string;
+  value?: string;
+};
+
 type BadgeStyle = {
   label: string;
   color: string;
@@ -93,8 +99,7 @@ function getEtatBadge(p: any): BadgeStyle | null {
   });
 
   if (fullEtat) {
-    const label = fullEtat?.tag ?? fullEtat?.tag_label;
-    return getEtatStyle(label);
+    return getEtatStyle(fullEtat?.tag ?? fullEtat?.tag_label);
   }
 
   const rawEtat = rawTags.find((t: any) => {
@@ -103,28 +108,23 @@ function getEtatBadge(p: any): BadgeStyle | null {
   });
 
   if (rawEtat) {
-    const label = rawEtat?.tag ?? rawEtat?.tag_label;
-    return getEtatStyle(label);
+    return getEtatStyle(rawEtat?.tag ?? rawEtat?.tag_label);
   }
 
   return getEtatFromSlugs(p);
 }
 
-type ProductAttr = {
-  code?: string;
-  label?: string;
-  value?: string;
-};
-
-function getParsedAttrs(product: any): ProductAttr[] {
-  const raw = product?.misc_text;
-
-  if (Array.isArray(raw)) {
-    return raw;
+function getProductAttrs(product: any): ProductAttr[] {
+  if (Array.isArray(product?.attributes)) {
+    return product.attributes;
   }
 
-  if (typeof raw === "string" && raw.trim()) {
-    const parsed = safeJsonParse<ProductAttr[]>(raw);
+  if (Array.isArray(product?.misc_text)) {
+    return product.misc_text;
+  }
+
+  if (typeof product?.misc_text === "string" && product.misc_text.trim()) {
+    const parsed = safeJsonParse<ProductAttr[]>(product.misc_text);
     return Array.isArray(parsed) ? parsed : [];
   }
 
@@ -150,7 +150,7 @@ export default function EtiquetteProduit({
   product: any;
   landscape: boolean;
 }) {
-  const attrs = getParsedAttrs(product);
+  const attrs = getProductAttrs(product);
 
   const storageAttr = attrs.find(isStorageAttr);
   const guaranteeAttr = attrs.find(isGuaranteeAttr);
@@ -172,122 +172,148 @@ export default function EtiquetteProduit({
   const guarantee = String(guaranteeAttr?.value ?? "").trim() || "1 AN";
   const productId = product?.product_id ? `Id ${product.product_id}` : "";
 
+  if (landscape) {
+    return (
+      <aside className="h-full w-full" aria-hidden="true">
+        <div className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-[24px] border border-black/10 bg-white/95 p-[22px] pb-[150px] text-[#111] shadow-[0_24px_80px_rgba(0,0,0,0.38)]">
+          <div className="mb-[18px] flex flex-col gap-[14px]">
+            <img
+              className="block h-auto w-full max-w-full object-contain"
+              src="/logo-multimedia.png"
+              alt="Multimédia Services"
+            />
+
+            {etat && (
+              <div
+                className={[
+                  "inline-flex min-h-[38px] items-center justify-center self-end rounded-full px-4 py-2",
+                  "text-[14px] font-black leading-none whitespace-nowrap",
+                  etat.color,
+                ].join(" ")}
+              >
+                {etat.label}
+              </div>
+            )}
+          </div>
+
+          {brand ? (
+            <div className="mb-3 text-[22px] font-black uppercase leading-[1.1] text-[#111]">
+              {brand}
+            </div>
+          ) : null}
+
+          <div className="mb-[14px] font-[Rajdhani,Inter,system-ui,sans-serif] text-[34px] font-extrabold leading-[1.02] tracking-[.2px] text-[#111]">
+            {model}
+          </div>
+
+          {storage ? (
+            <div className="mb-[22px] text-[22px] font-extrabold leading-[1.1] text-slate-800">
+              {storage}
+            </div>
+          ) : null}
+
+          <div className="mb-[18px] flex flex-col gap-2">
+            <div className="text-[54px] font-black leading-[0.95] text-[#111]">
+              {formatPrice(price ?? "0")}
+            </div>
+
+            {hasPromo && (
+              <div className="text-[20px] font-bold text-slate-500 line-through">
+                {formatPrice(oldPrice ?? "0")}
+              </div>
+            )}
+          </div>
+
+          {productId ? (
+            <div className="self-end text-[24px] font-bold leading-none text-[#111]">
+              {productId}
+            </div>
+          ) : null}
+
+          <div className="mt-4 flex min-h-0 flex-1 flex-col justify-end gap-5 overflow-y-auto pb-2">
+            {visibleAttrs.map((attr, i) => (
+              <div
+                key={`${attr.code ?? "attr"}-${i}`}
+                className="text-[20px] leading-[1.45] text-slate-900"
+              >
+                <strong className="font-black">{attr.label} :</strong>{" "}
+                <span>{attr.value}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="absolute bottom-0 left-0 right-0 flex h-[120px] items-center justify-center bg-[#e37820] px-[14px] text-center text-[24px] font-black tracking-[.2px] text-white">
+            GARANTIE : {guarantee.toUpperCase()}
+          </div>
+        </div>
+      </aside>
+    );
+  }
+
   return (
-    <aside
-      className={
-        landscape
-          ? "w-[390px] max-w-[390px] shrink-0 self-stretch"
-          : "w-full shrink-0"
-      }
-      aria-hidden="true"
-    >
-      <div
-        className={[
-          "relative overflow-hidden rounded-[24px] border border-black/10 bg-white/95 text-[#111]",
-          "shadow-[0_24px_80px_rgba(0,0,0,0.38)]",
-          "flex flex-col",
-          landscape ? "h-full p-[22px] pb-[78px]" : "p-4 pb-[58px]",
-        ].join(" ")}
-      >
-        <div className={landscape ? "mb-[18px] flex flex-col gap-[14px]" : "mb-4 flex flex-col gap-3"}>
-          <img
-            className="block h-auto w-full max-w-full object-contain"
-            src="/logo-multimedia.png"
-            alt="Multimédia Services"
-          />
+    <aside className="h-full w-full" aria-hidden="true">
+      <div className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-[24px] border border-black/10 bg-white/95 p-3 pb-[46px] text-[#111] shadow-[0_24px_80px_rgba(0,0,0,0.38)]">
+        <div className="mb-3 grid grid-cols-[1fr_1fr] gap-3">
+          <div className="flex min-w-0 items-start">
+            <img
+              className="block h-auto w-full max-w-[88%] object-contain"
+              src="/logo-multimedia.png"
+              alt="Multimédia Services"
+            />
+          </div>
 
-          {etat && (
-            <div
-              className={[
-                "inline-flex min-h-[38px] items-center justify-center self-end rounded-full px-4 py-2",
-                "whitespace-nowrap text-center font-black leading-none",
-                landscape ? "text-[14px]" : "text-[13px]",
-                etat.color,
-              ].join(" ")}
-            >
-              {etat.label}
+          <div className="flex min-w-0 flex-col items-start justify-start">
+            {etat && (
+              <div
+                className={[
+                  "mb-1.5 inline-flex min-h-[30px] items-center justify-center rounded-full px-3 py-1",
+                  "text-[11px] font-black leading-none whitespace-nowrap",
+                  etat.color,
+                ].join(" ")}
+              >
+                {etat.label}
+              </div>
+            )}
+
+            {brand ? (
+              <div className="mb-1 text-[15px] font-black uppercase leading-[1.05] text-[#111]">
+                {brand}
+              </div>
+            ) : null}
+
+            <div className="mb-1.5 font-[Rajdhani,Inter,system-ui,sans-serif] text-[20px] font-extrabold leading-[1] tracking-[.15px] text-[#111]">
+              {model}
             </div>
-          )}
-        </div>
 
-        {brand ? (
-          <div
-            className={[
-              "font-black uppercase leading-[1.1] text-[#111]",
-              landscape ? "mb-3 text-[22px]" : "mb-2 text-[18px]",
-            ].join(" ")}
-          >
-            {brand}
-          </div>
-        ) : null}
+            {storage ? (
+              <div className="mb-1.5 text-[14px] font-extrabold leading-[1.05] text-slate-800">
+                {storage}
+              </div>
+            ) : null}
 
-        <div
-          className={[
-            "font-extrabold leading-[1.02] tracking-[.2px] text-[#111]",
-            "font-[Rajdhani,Inter,system-ui,sans-serif]",
-            landscape ? "mb-[14px] text-[34px]" : "mb-3 text-[24px]",
-          ].join(" ")}
-        >
-          {model}
-        </div>
-
-        {storage ? (
-          <div
-            className={[
-              "font-extrabold leading-[1.1] text-slate-800",
-              landscape ? "mb-[22px] text-[22px]" : "mb-3 text-[18px]",
-            ].join(" ")}
-          >
-            {storage}
-          </div>
-        ) : null}
-
-        <div className={landscape ? "mb-[22px] flex flex-col gap-2" : "mb-4 flex flex-col gap-1.5"}>
-          <div
-            className={[
-              "font-black leading-[0.95] text-[#111]",
-              landscape ? "text-[54px]" : "text-[34px]",
-            ].join(" ")}
-          >
-            {formatPrice(price ?? "0")}
-          </div>
-
-          {hasPromo && (
-            <div
-              className={[
-                "font-bold text-slate-500 line-through",
-                landscape ? "text-[20px]" : "text-[17px]",
-              ].join(" ")}
-            >
-              {formatPrice(oldPrice ?? "0")}
+            <div className="text-[29px] font-black leading-[0.95] text-[#111]">
+              {formatPrice(price ?? "0")}
             </div>
-          )}
+
+            {hasPromo && (
+              <div className="mt-1 text-[13px] font-bold text-slate-500 line-through">
+                {formatPrice(oldPrice ?? "0")}
+              </div>
+            )}
+
+            {productId ? (
+              <div className="mt-1.5 self-end text-[13px] font-bold leading-none text-[#111]">
+                {productId}
+              </div>
+            ) : null}
+          </div>
         </div>
 
-        {productId ? (
-          <div
-            className={[
-              "self-end font-bold leading-none text-[#111]",
-              landscape ? "text-[24px]" : "text-[20px]",
-            ].join(" ")}
-          >
-            {productId}
-          </div>
-        ) : null}
-
-        <div
-          className={[
-            "mt-4 flex min-h-0 flex-1 flex-col items-stretch",
-            landscape ? "gap-3 overflow-y-auto" : "gap-2 overflow-y-auto",
-          ].join(" ")}
-        >
+        <div className="grid min-h-0 flex-1 grid-cols-2 content-start gap-x-4 gap-y-2 overflow-y-auto pr-1 pb-1">
           {visibleAttrs.map((attr, i) => (
             <div
               key={`${attr.code ?? "attr"}-${i}`}
-              className={[
-                "leading-[1.35] text-slate-900",
-                landscape ? "text-[20px]" : "text-[14px]",
-              ].join(" ")}
+              className="text-[12.5px] leading-[1.22] text-slate-900"
             >
               <strong className="font-black">{attr.label} :</strong>{" "}
               <span>{attr.value}</span>
@@ -295,12 +321,7 @@ export default function EtiquetteProduit({
           ))}
         </div>
 
-        <div
-          className={[
-            "absolute bottom-0 left-0 right-0 bg-[#e37820] text-center font-black tracking-[.2px] text-white",
-            landscape ? "px-[10px] py-3 text-[20px]" : "px-2 py-3 text-[17px]",
-          ].join(" ")}
-        >
+        <div className="absolute bottom-0 left-0 right-0 flex h-[34px] items-center justify-center bg-[#e37820] px-2 text-center text-[14px] font-black tracking-[.15px] text-white">
           GARANTIE : {guarantee.toUpperCase()}
         </div>
       </div>
