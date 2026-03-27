@@ -5,6 +5,7 @@ import DiaporamaClient from "./DiaporamaClient";
 import { hiboutikGetProductsByTag } from "@/app/lib/hiboutik-cache";
 import type { HiboutikProduct, HiboutikResolvedTag } from "@/app/types/ProductType";
 import { hiboutikGetTagsProductsIndex } from "@/app/lib/hiboutik";
+import { data } from "framer-motion/client";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +40,13 @@ export default async function DiaporamaSlotPage({ params, searchParams }: Props)
 
   const products: HiboutikProduct[] = await hiboutikGetProductsByTag(slot);
 
-  
+  // // sort product by updated date desc (newest first)
+  // const products = hiboutikProducts.sort((a, b) => {
+  //   const da = new Date(a.updatedAt ?? 0).getTime();
+  //   const db = new Date(b.updatedAt ?? 0).getTime();
+  //   return db - da;
+  // });
+
 
   if (!products.length) {
     return (

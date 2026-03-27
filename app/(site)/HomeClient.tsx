@@ -10,6 +10,7 @@ import { useProductFilters } from "@/app/stores/productFilters";
 import { HiboutikProduct } from "@/app/types/ProductType";
 
 import ProductCarousel from "@/components/ProductCarousel";
+import ProductUpdatesListenerModal from "@/components/ProductUpdatesListenerModal";
 
 type CategoryRow = {
   category_id: number;
@@ -226,6 +227,7 @@ export default function HomeClient({
 
   return (
     <div className="mx-auto max-w-6xl px-6">
+      <ProductUpdatesListenerModal />
       {/* filtre global */}
       <ProductFilters total={recentProducts.length} shown={baseRecent.length} matched={matchedRecent.length} />
 

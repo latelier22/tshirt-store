@@ -231,7 +231,7 @@ export default function ProductCarousel({
               </div>
 
               <div className="text-sm font-semibold line-clamp-2">
-                {p.product_model}
+                {p.product_model} SALUT
               </div>
 
               <div className="mt-1 flex items-baseline gap-2">

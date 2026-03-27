@@ -140,10 +140,7 @@ export async function hiboutikGetProductsByTag(tag: string) {
 
   const items: any[] = Array.isArray(json?.data) ? json.data : [];
 
-  console.log(`Hiboutik productsByTag "${tag}"`, {
-    count: items.length,
-    items,
-  });
+
 
   const detailedItems = await Promise.all(
     items.map(async (item) => {
@@ -167,7 +164,7 @@ export async function hiboutikGetProductsByTag(tag: string) {
 
         const attributes = parseAttributesFromMiscText(miscText);
 
-        console.log(`attributes for product ${item?.product_id}:`, attributes);
+        
 
         // ✅ on garde les images de l’item de la liste si elles existent déjà
         // ✅ sinon on prend celles du détail

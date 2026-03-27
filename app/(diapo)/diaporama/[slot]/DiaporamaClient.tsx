@@ -6,6 +6,7 @@ import type { HiboutikProduct } from "@/app/types/ProductType";
 import { formatPrice } from "@/app/lib/utils";
 import Header from "@/components/Header";
 import EtiquetteProduit from "./Etiquette";
+import ProductUpdatesListener from "@/components/ProductUpdatesListener";
 
 type BadgeStyle = {
   label: string;
@@ -314,11 +315,13 @@ function ProductVisual({
 
   return (
     <div ref={wrapperRef} className="absolute inset-0" onClick={onClick}>
+      <ProductUpdatesListener />
       <Image
         src={firstImage(product)}
         alt={product?.product_model ?? ""}
         fill
         unoptimized
+        priority
         className={`
           object-contain
           transition-opacity duration-700
