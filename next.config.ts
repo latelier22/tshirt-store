@@ -6,6 +6,11 @@ const nextConfig: NextConfig = {
     localPatterns: [
       // Autorise *toutes* les queries sur notre proxy local
       { pathname: "/api/hiboutik/image" },
+
+       {
+        pathname: '/**',
+        search: '',
+      },
       
 
       // Tes assets locaux du dossier /public
