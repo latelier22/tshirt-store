@@ -22,6 +22,9 @@ type Frame = {
 
 type DiapoPhase = "hero" | "label" | "exit";
 
+const PROMO_INTERVAL = 5000; // toutes les 15 secondes
+const PROMO_DURATION = 3000;  // durée d'affichage de la diapo promo
+
 function firstImage(p: any) {
   const list = Array.isArray(p?.images) ? p.images : [];
   return p?.image ?? p?.thumb ?? list[0] ?? "";
@@ -175,11 +178,6 @@ function getInfoVisualBottomStyle(
   rotationMode: string,
   bandDepth: number
 ): React.CSSProperties {
-  // bas visuel de l'image
-  // 0   => bottom
-  // 1   => right
-  // -1  => left
-
   if (rotationMode === "1") {
     return {
       top: 0,
@@ -241,6 +239,75 @@ function getInfoMotionClass(
   if (phase === "hero") return "opacity-0 translate-y-8";
   if (phase === "exit") return "opacity-0 translate-y-4";
   return "opacity-100 translate-y-0";
+}
+
+function PromoOpeningSlide() {
+  const [visible, setVisible] = React.useState(false);
+
+  React.useEffect(() => {
+    const t = window.setTimeout(() => setVisible(true), 30);
+    return () => clearTimeout(t);
+  }, []);
+
+  const base =
+    "transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]";
+
+  return (
+    <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black">
+      <div className="flex max-w-[90%] flex-col items-center justify-center text-center">
+        <div
+          className={`${base} ${
+            visible ? "translate-y-0 opacity-100 scale-100" : "translate-y-8 opacity-0 scale-95"
+          } rounded-full border border-red-500 bg-red-600 px-8 py-4 text-3xl font-extrabold tracking-wide text-white shadow-[0_0_40px_rgba(220,38,38,0.35)]`}
+        >
+          PROMO -10%
+        </div>
+
+        <div
+          className={`${base} ${
+            visible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+          } mt-10 text-5xl font-light uppercase tracking-[0.35em] text-white`}
+          style={{ transitionDelay: "120ms" }}
+        >
+          Spéciale ouverture
+        </div>
+
+        <div
+          className={`${base} ${
+            visible ? "translate-y-0 opacity-100 scale-100" : "translate-y-10 opacity-0 scale-95"
+          } mt-4 text-7xl font-black uppercase leading-none text-amber-400`}
+          style={{ transitionDelay: "260ms" }}
+        >
+          Nouvelle boutique
+        </div>
+
+        <div
+          className={`${base} ${
+            visible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+          } mt-12 h-[2px] w-40 bg-white/70`}
+          style={{ transitionDelay: "360ms" }}
+        />
+
+        <div
+          className={`${base} ${
+            visible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+          } mt-10 text-3xl font-medium uppercase tracking-[0.18em] text-white/90`}
+          style={{ transitionDelay: "460ms" }}
+        >
+          Du 1er au 11 avril
+        </div>
+
+        <div
+          className={`${base} ${
+            visible ? "translate-y-0 opacity-100 scale-100" : "translate-y-8 opacity-0 scale-95"
+          } mt-2 text-6xl font-black text-white`}
+          style={{ transitionDelay: "580ms" }}
+        >
+          2026
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function ProductVisual({
@@ -316,6 +383,7 @@ function ProductVisual({
   return (
     <div ref={wrapperRef} className="absolute inset-0" onClick={onClick}>
       <ProductUpdatesListener />
+
       <Image
         src={firstImage(product)}
         alt={product?.product_model ?? ""}
@@ -427,6 +495,7 @@ export default function DiaporamaClient({
   const [zoomItem, setZoomItem] = React.useState<HiboutikProduct | null>(null);
   const [fade, setFade] = React.useState(true);
   const [diapoPhase, setDiapoPhase] = React.useState<DiapoPhase>("hero");
+  const [showPromoSlide, setShowPromoSlide] = React.useState(false);
 
   const totalPages = Math.max(1, Math.ceil(items.length / ITEMS_PER_PAGE));
 
@@ -474,7 +543,7 @@ export default function DiaporamaClient({
   }, [index, items.length, totalPages]);
 
   const nextProduct = React.useCallback(() => {
-    if (!items.length) return;
+    if (!items.length || showPromoSlide) return;
 
     setDiapoPhase("exit");
     setFade(false);
@@ -482,10 +551,34 @@ export default function DiaporamaClient({
     window.setTimeout(() => {
       advanceToNext();
     }, 760);
-  }, [items.length, advanceToNext]);
+  }, [items.length, advanceToNext, showPromoSlide]);
 
+  // Affichage automatique de la diapo promo toutes les 15 secondes
   React.useEffect(() => {
     if (paused || !items.length) return;
+
+    const interval = window.setInterval(() => {
+      if (zoomItem) return;
+      setShowPromoSlide(true);
+    }, PROMO_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [paused, items.length, zoomItem]);
+
+  // La diapo promo se ferme toute seule
+  React.useEffect(() => {
+    if (!showPromoSlide) return;
+
+    const t = window.setTimeout(() => {
+      setShowPromoSlide(false);
+    }, PROMO_DURATION);
+
+    return () => clearTimeout(t);
+  }, [showPromoSlide]);
+
+  // Diaporama normal, suspendu pendant la diapo promo
+  React.useEffect(() => {
+    if (paused || !items.length || showPromoSlide) return;
 
     if (mode === "grid") {
       const t = setTimeout(() => {
@@ -521,7 +614,7 @@ export default function DiaporamaClient({
         clearTimeout(t3);
       };
     }
-  }, [mode, index, paused, items.length, gridPage, advanceToNext]);
+  }, [mode, index, paused, items.length, gridPage, advanceToNext, showPromoSlide]);
 
   const isPortrait = portrait === "1" || portrait === "-1";
   const angle = portrait === "-1" ? -90 : 90;
@@ -614,8 +707,8 @@ export default function DiaporamaClient({
                       diapoPhase === "hero"
                         ? "translateX(-24px)"
                         : diapoPhase === "exit"
-                          ? "translateX(-12px)"
-                          : "translateX(0)",
+                        ? "translateX(-12px)"
+                        : "translateX(0)",
                   }}
                 >
                   <div className="h-full w-[390px] max-w-full">
@@ -678,8 +771,8 @@ export default function DiaporamaClient({
                       diapoPhase === "hero"
                         ? "translateY(24px)"
                         : diapoPhase === "exit"
-                          ? "translateY(12px)"
-                          : "translateY(0)",
+                        ? "translateY(12px)"
+                        : "translateY(0)",
                   }}
                 >
                   <div className="h-[430px] max-h-full w-full">
@@ -693,6 +786,8 @@ export default function DiaporamaClient({
             )}
           </div>
         )}
+
+        {showPromoSlide && <PromoOpeningSlide />}
 
         <div className="absolute right-4 top-4 z-50">
           <button
