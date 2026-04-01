@@ -7,6 +7,7 @@ import { formatPrice } from "@/app/lib/utils";
 import Header from "@/components/Header";
 import EtiquetteProduit from "./Etiquette";
 import ProductUpdatesListener from "@/components/ProductUpdatesListener";
+import { Just_Another_Hand } from "next/font/google";
 
 type BadgeStyle = {
   label: string;
@@ -254,7 +255,22 @@ function PromoOpeningSlide() {
 
   return (
     <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black">
+      <div
+ className="justify-center"
+ >
+
+      
+        </div>
       <div className="flex max-w-[90%] flex-col items-center justify-center text-center">
+        <Image 
+        src="/logo-multimedia.png"
+        alt="Promotion spéciale ouverture"
+        width={500}
+        height={300}  
+        unoptimized
+        className="mb-20"
+        
+        />  
         <div
           className={`${base} ${
             visible ? "translate-y-0 opacity-100 scale-100" : "translate-y-8 opacity-0 scale-95"
