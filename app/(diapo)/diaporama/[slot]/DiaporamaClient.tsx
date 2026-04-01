@@ -22,8 +22,8 @@ type Frame = {
 
 type DiapoPhase = "hero" | "label" | "exit";
 
-const PROMO_INTERVAL = 5000; // toutes les 15 secondes
-const PROMO_DURATION = 3000;  // durée d'affichage de la diapo promo
+const PROMO_INTERVAL = 15000; // toutes les 15 secondes
+const PROMO_DURATION = 5000;  // durée d'affichage de la diapo promo
 
 function firstImage(p: any) {
   const list = Array.isArray(p?.images) ? p.images : [];
