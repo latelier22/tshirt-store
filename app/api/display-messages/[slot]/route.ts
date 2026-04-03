@@ -23,6 +23,9 @@ export async function GET(
       },
     });
 
+    console.log(`Proxying request for slot "${slot}" to remote URL: ${remoteUrl}`);
+    console.log('Remote response', res.status);
+
     if (!res.ok) {
       return NextResponse.json(
         {
