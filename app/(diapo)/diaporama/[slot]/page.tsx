@@ -65,9 +65,17 @@ export default async function DiaporamaSlotPage({
     : [];
 
   const rawProducts: HiboutikProduct[] = await hiboutikGetProductsByTag(slot);
-const products: HiboutikProduct[] = rawProducts.filter(
+const filteredProducts: HiboutikProduct[] = rawProducts.filter(
   (p) => hasUsableImage(p) && Number(p.stock_available) > 0
 );
+
+
+const products = [...filteredProducts];
+
+for (let i = products.length - 1; i > 0; i--) {
+  const j = Math.floor(Math.random() * (i + 1));
+  [products[i], products[j]] = [products[j], products[i]];
+}
 
 console.log(products[0].stock_available, products[0].product_id, products[0].product_model);
 
