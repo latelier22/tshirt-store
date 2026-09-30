@@ -77,7 +77,6 @@ for (let i = products.length - 1; i > 0; i--) {
   [products[i], products[j]] = [products[j], products[i]];
 }
 
-console.log(products[0].stock_available, products[0].product_id, products[0].product_model);
 
   if (!products.length) {
     if (activeMessages.length > 0) {
