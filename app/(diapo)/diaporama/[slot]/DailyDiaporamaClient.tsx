@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { HiboutikProduct } from "@/app/types/ProductType";
 import { getDiaporamaDay, mergeDailyProducts } from "@/app/lib/diaporama-stock";
+import { sortProductsByRecency } from "@/app/lib/product-order";
 import type { DisplayMessage } from "./types";
 import DiaporamaClient from "./DiaporamaClient";
 import DiaporamaMessagesClient from "./DiaporamaMessagesClient";
@@ -40,7 +41,7 @@ export default function DailyDiaporamaClient({ slot, products, messages, portrai
     if (!day) return;
     const prefix = `diaporama-daily:${encodeURIComponent(slot)}:`;
     const key = `${prefix}${day}`;
-    const next = mergeDailyProducts(readProducts(key), products);
+    const next = sortProductsByRecency(mergeDailyProducts(readProducts(key), products));
     // Hydrate the display from the browser's persistent daily stock snapshot.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setDailyProducts(next);

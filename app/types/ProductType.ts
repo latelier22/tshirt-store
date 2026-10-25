@@ -51,6 +51,9 @@ export type HiboutikProduct = {
   image?: string;
 
   updatedAt?: string;
+  updated_at?: string;
+  createdAt?: string;
+  created_at?: string;
 
   // ✅ champ (pas une fonction)
   tags?: HiboutikResolvedTag[];

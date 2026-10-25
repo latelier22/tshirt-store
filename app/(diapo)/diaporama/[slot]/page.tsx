@@ -11,6 +11,7 @@ import { syliusGetMessages } from "@/app/lib/sylius/api";
 import { hasUsableImage } from "./helpers";
 import { isDiaporamaProductAvailable } from "@/app/lib/diaporama-stock";
 import StockRefresh from "./StockRefresh";
+import { sortProductsByRecency, getProductsRevision } from "@/app/lib/product-order";
 
 type Props = {
   params: Promise<{ slot: string }>;
@@ -66,14 +67,9 @@ export default async function DiaporamaSlotPage({
     (p) => hasUsableImage(p) && isDiaporamaProductAvailable(p)
   );
 
-  const products = [...filteredProducts];
+  const products = sortProductsByRecency(filteredProducts);
   const productIds = products.map((product) => product.product_id).sort((a, b) => a - b);
-  const stockRefresh = <StockRefresh slot={slot} productIds={productIds} />;
-
-  for (let i = products.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [products[i], products[j]] = [products[j], products[i]];
-  }
+  const stockRefresh = <StockRefresh slot={slot} productIds={productIds} revision={getProductsRevision(products)} />;
 
   const tagIndex = products.length ? await hiboutikGetTagsProductsIndex() : new Map<number, HiboutikResolvedTag>();
 

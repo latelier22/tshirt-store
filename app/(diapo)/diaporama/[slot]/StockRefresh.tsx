@@ -4,9 +4,10 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ProductUpdatesListener from "@/components/ProductUpdatesListener";
 
-export default function StockRefresh({ slot, productIds }: {
+export default function StockRefresh({ slot, productIds, revision }: {
   slot: string;
   productIds: number[];
+  revision: string;
 }) {
   const router = useRouter();
   const signature = [...productIds].sort((a, b) => a - b).join(",");
@@ -27,7 +28,8 @@ export default function StockRefresh({ slot, productIds }: {
         const data = await response.json();
         if (!Array.isArray(data.productIds) || !data.productIds.every(Number.isFinite)) return;
         const latest = [...data.productIds].sort((a: number, b: number) => a - b).join(",");
-        if (!controller.signal.aborted && latest !== signature) router.refresh();
+        if (!controller.signal.aborted && (latest !== signature ||
+          (typeof data.revision === "string" && data.revision !== revision))) router.refresh();
       } catch {
         // Keep the current display during a temporary outage; retry on the next check.
       } finally {
@@ -40,7 +42,7 @@ export default function StockRefresh({ slot, productIds }: {
       controller.abort();
       window.clearInterval(timer);
     };
-  }, [router, slot, signature]);
+  }, [router, slot, signature, revision]);
 
   return <ProductUpdatesListener />;
 }
