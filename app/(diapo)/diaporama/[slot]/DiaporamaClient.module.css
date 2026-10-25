@@ -123,3 +123,140 @@
 .pulsePrice {
   animation: pulsePrice 2.8s infinite;
 }
+/* Shared signage stage: dimensions follow the rotated canvas, not the viewport. */
+.shell {
+  --accent: #ff8a36;
+  position: absolute; inset: 0; overflow: hidden; background: #080c14; color: #f8fafc;
+  container-type: size; isolation: isolate; font-family: Arial, Helvetica, sans-serif;
+}
+.shell *, .shell *::before, .shell *::after { box-sizing: border-box; }
+.shell[data-paused="true"] *, .shell[data-paused="true"] *::before, .shell[data-paused="true"] *::after { animation-play-state: paused !important; }
+.brandBar { position: absolute; inset: 0 0 auto; height: 10%; padding: 1.6cqh 3cqw; z-index: 75; display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
+.brandLogo { position: relative; height: 100%; width: 19cqw; max-width: 240px; min-width: 130px; border-radius: 8px; background: white; padding: 8px 14px; }
+.brandLogo img { width: 100%; height: 100%; object-fit: contain; }
+.brandCaption { margin-right: 6cqw; font-size: clamp(10px, 1.1cqw, 19px); letter-spacing: .22em; font-weight: 700; text-transform: uppercase; color: #a8b5c7; }
+.scene { position: absolute; inset: 10% 0 6%; overflow: hidden; }
+.footerBar { position: absolute; inset: auto 0 0; height: 6%; display: flex; align-items: center; justify-content: space-between; padding: 0 3cqw; color: #a8b5c7; font-size: clamp(10px, 1cqw, 18px); letter-spacing: .1em; text-transform: uppercase; background: #080c14; z-index: 70; }
+.footerBar strong { color: #ff8a36; }
+.progressTrack { position: absolute; left: 0; right: 0; top: 0; height: 3px; background: #ffffff10; overflow: hidden; }
+.progressFill { height: 100%; width: 100%; background: linear-gradient(90deg, #fa7628, #ffd7a0); transform-origin: left; animation: stageProgress var(--duration, 8s) linear both; }
+.controls { position: absolute; right: 1.5cqw; top: 2cqh; z-index: 90; display: flex; gap: 8px; }
+.controlButton { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid #ffffff25; background: #ffffff0d; color: white; border-radius: 50%; cursor: pointer; }
+.controlButton:hover, .controlButton:focus-visible { background: #ffffff25; outline: 2px solid #ff8a36; }
+.gridScene { position: absolute; inset: 0; padding: 1cqh 3cqw 2cqh; display: flex; flex-direction: column; gap: 1.7cqh; }
+.gridHeading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.gridHeading h1 { font-size: clamp(20px, 3cqw, 48px); font-weight: 900; letter-spacing: -.04em; margin: 0; }
+.gridHeading h1 em { color: #ff8a36; font-style: normal; }
+.gridHeading span { font-size: clamp(10px, 1cqw, 18px); color: #a8b5c7; text-transform: uppercase; letter-spacing: .15em; }
+.productGrid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 1.3cqh; }
+.gridCard { position: relative; overflow: hidden; border: 1px solid #ffffff1a; border-radius: 14px; background: linear-gradient(145deg, #1a2639, #101722); cursor: pointer; color: white; text-align: left; }
+.gridCard:nth-child(3n+2) { background: linear-gradient(145deg, #292015, #151922); }
+.gridCard:hover { border-color: #ff8a36; }
+.gridImage { position: absolute; inset: 4% 38% 4% 2%; animation: gridFloat 6s ease-in-out infinite; }
+.gridImage img { object-fit: contain; }
+.gridCardInfo { position: absolute; inset: 12% 5% 10% 61%; display: flex; flex-direction: column; justify-content: center; gap: .5cqh; }
+.gridCardInfo h2 { font-size: clamp(12px, 1.45cqw, 27px); font-weight: 800; line-height: 1.08; letter-spacing: -.035em; margin: 0; overflow-wrap: anywhere; }
+.gridCardInfo strong { color: #ffb875; font-size: clamp(14px, 1.9cqw, 34px); letter-spacing: -.04em; }
+.gridCondition { font-size: clamp(8px, .7cqw, 13px); color: #b8c9dd; font-weight: 600; text-transform: uppercase; }
+.gridNav { display: flex; justify-content: center; align-items: center; gap: 20px; }
+.spotlight { position: absolute; inset: 0; overflow: hidden; display: grid; grid-template-columns: 43% 57%; padding: 2cqh 3cqw 5cqh; }
+.decor { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: -1; }
+.aurora { position: absolute; width: 85%; height: 120%; right: -25%; top: -5%; background: radial-gradient(ellipse, color-mix(in srgb, var(--accent) 24%, transparent), transparent 65%); animation: auroraDrift 10s ease-in-out infinite alternate; }
+.orbit, .orbitInner { position: absolute; width: 63cqw; height: 63cqw; border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent); border-radius: 50%; right: -7%; top: calc(50% - 31.5cqw); animation: orbitSpin 35s linear infinite; }
+.orbit::after { content: ""; position: absolute; width: 10px; height: 10px; background: var(--accent); border-radius: 50%; top: 14%; left: 14%; box-shadow: 0 0 25px var(--accent); }
+.orbitInner { width: 49cqw; height: 49cqw; top: calc(50% - 24.5cqw); right: 0; border-style: dashed; opacity: .35; animation-direction: reverse; }
+.stageGrid { position: absolute; inset: 0; opacity: .13; background-image: linear-gradient(#8ca2bd33 1px, transparent 1px), linear-gradient(90deg, #8ca2bd33 1px, transparent 1px); background-size: 64px 64px; mask-image: linear-gradient(90deg, transparent, black); }
+.lightSweep { position: absolute; width: 12%; height: 180%; top: -40%; background: linear-gradient(90deg, transparent, #ffffff07, transparent); transform: rotate(25deg); animation: sweepAcross 9s ease-in-out infinite; }
+.crossOne, .crossTwo { position: absolute; color: var(--accent); font-size: 34px; font-weight: 200; opacity: .6; top: 12%; right: 8%; }
+.crossTwo { top: auto; right: 45%; bottom: 8%; }
+.spotlightCopy { position: relative; z-index: 2; align-self: center; min-width: 0; padding-bottom: 2cqh; }
+.eyebrow { display: flex; align-items: center; gap: .8em; color: var(--accent); font-size: clamp(12px, 1.2cqw, 22px); font-weight: 700; letter-spacing: .2em; text-transform: uppercase; margin-bottom: 2cqh; }
+.liveDot { flex: 0 0 auto; width: .5em; height: .5em; background: currentColor; border-radius: 50%; box-shadow: 0 0 14px currentColor; }
+.conditionTag { display: inline-block; color: #c9d7e8; border: 1px solid #ffffff30; border-radius: 5px; padding: .5em .8em; font-size: clamp(10px, .9cqw, 17px); font-weight: 700; letter-spacing: .08em; margin-bottom: 1.7cqh; }
+.productTitle { margin: 0; font-size: clamp(28px, 5.7cqw, 110px); line-height: .98; font-weight: 900; letter-spacing: -.065em; text-wrap: balance; overflow-wrap: anywhere; }
+.priceBlock { margin: 2.5cqh 0; display: flex; flex-wrap: wrap; gap: .6cqw; align-items: baseline; }
+.heroPrice { color: var(--accent); font-weight: 900; font-size: clamp(35px, 6.3cqw, 126px); letter-spacing: -.07em; line-height: 1; white-space: nowrap; }
+.oldPrice { color: #b6c3d5; text-decoration: line-through; font-size: clamp(15px, 1.6cqw, 30px); }
+.promoTag { display: block; flex-basis: 100%; font-size: clamp(10px, 1cqw, 18px); letter-spacing: .15em; color: var(--accent); font-weight: 800; }
+.features { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1cqh 1.8cqw; margin-top: 2cqh; }
+.feature { padding: .7cqh 0 .7cqh 1cqw; border-left: 2px solid var(--accent); min-width: 0; }
+.feature span { display: block; font-size: clamp(9px, .9cqw, 17px); color: #93a8c1; margin-bottom: .4em; }
+.feature strong { display: block; font-size: clamp(12px, 1.35cqw, 25px); line-height: 1.15; overflow-wrap: anywhere; }
+.guarantee { margin-top: 2cqh; font-size: clamp(12px, 1.15cqw, 21px); color: #d2dfed; }
+.guarantee span { display: inline-grid; place-items: center; width: 1.5em; height: 1.5em; margin-right: .5em; border-radius: 50%; background: #ffffff12; color: var(--accent); }
+.productStage { position: relative; align-self: stretch; border: 0; background: transparent; cursor: pointer; min-width: 0; min-height: 0; color: white; }
+.stageWord { position: absolute; left: -5%; right: -10%; top: 6%; font-size: clamp(36px, 12cqw, 200px); font-weight: 900; line-height: 1; letter-spacing: -.07em; text-transform: uppercase; color: transparent; -webkit-text-stroke: 1px #ffffff14; overflow: hidden; white-space: nowrap; }
+.productHalo { position: absolute; inset: 15% 3% 2%; border-radius: 50%; background: radial-gradient(ellipse, color-mix(in srgb, var(--accent) 12%, transparent), transparent 68%); }
+.imageFloat { position: absolute; inset: 5% 0 8%; animation: productFloat 6s ease-in-out infinite; }
+.heroImage { position: absolute; inset: 0; }
+.productImage { object-fit: contain; padding: 2%; filter: drop-shadow(0 28px 24px #0007); }
+.imageShine { pointer-events: none; position: absolute; inset: 0; background: linear-gradient(115deg, transparent 40%, #ffffff05 48%, transparent 56%); animation: shine 6s ease-in-out infinite; }
+.viewDots { position: absolute; bottom: 2%; left: 0; right: 0; display: flex; justify-content: center; gap: 9px; }
+.viewDots span { width: 7px; height: 7px; border-radius: 20px; background: #ffffff38; transition: width .4s, background .4s; }
+.viewDots span[data-active="true"] { width: 30px; background: var(--accent); }
+.spotlightPortrait { grid-template-columns: 1fr; grid-template-rows: 55% 45%; padding: 0 5cqw 5cqh; }
+.spotlightPortrait .productStage { grid-row: 1; }
+.spotlightPortrait .spotlightCopy { grid-row: 2; align-self: start; }
+.spotlightPortrait .productTitle { font-size: clamp(28px, 7.8cqw, 90px); }
+.spotlightPortrait .heroPrice { font-size: clamp(35px, 9cqw, 110px); }
+.spotlightPortrait .eyebrow { font-size: 2cqw; margin-bottom: 1cqh; }
+.spotlightPortrait .conditionTag { position: absolute; right: 0; top: 0; font-size: 1.6cqw; }
+.spotlightPortrait .features { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2cqw; margin-top: 1.5cqh; }
+.spotlightPortrait .feature span { font-size: 1.5cqw; }
+.spotlightPortrait .feature strong { font-size: 2cqw; }
+.spotlightPortrait .priceBlock { margin: 1.5cqh 0; }
+.spotlightPortrait .guarantee { font-size: 1.8cqw; margin-top: 1.5cqh; }
+.messageScene { position: absolute; inset: 0; overflow: hidden; isolation: isolate; display: flex; align-items: center; justify-content: center; padding: 3cqh 6cqw; background: #0a101b; }
+.messageScene[data-background="orange"] { background: linear-gradient(125deg, #301708, #100f18 65%); }
+.messageScene[data-background="blue"] { background: linear-gradient(125deg, #071d38, #0a101b 65%); }
+.messageContent { width: 100%; max-height: 100%; overflow: hidden; position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1.8cqh; }
+.messageScene[data-align="left"] .messageContent { align-items: flex-start; text-align: left; }
+.messageScene[data-align="right"] .messageContent { align-items: flex-end; text-align: right; }
+.messageBadge { display: inline-flex; align-items: center; gap: .8em; padding: .6em 1.3em; background: var(--accent); color: #07101b; font-weight: 900; letter-spacing: .15em; font-size: clamp(13px, 1.7cqw, 32px); text-transform: uppercase; border-radius: 5px; margin-bottom: 1cqh; }
+.messageTitle { font-size: clamp(28px, 7.8cqw, 150px); font-weight: 900; line-height: 1; letter-spacing: -.055em; margin: 0; text-transform: uppercase; text-wrap: balance; overflow-wrap: anywhere; }
+.messageRule { height: 5px; width: 12cqw; min-width: 70px; background: var(--accent); margin: .8cqh 0; }
+.messageLead { font-size: clamp(17px, 2.7cqw, 52px); font-weight: 600; line-height: 1.15; }
+.messageLine { font-size: clamp(14px, 2cqw, 38px); color: #c4d2e3; line-height: 1.2; }
+.messageFooter { display: flex; gap: 1em; align-items: center; padding: .7em 1.2em; margin-top: 1cqh; font-size: clamp(12px, 1.5cqw, 28px); font-weight: 700; border: 1px solid #ffffff30; border-radius: 50px; }
+.messageFooter span { color: var(--accent); font-size: 1.4em; }
+.messageSeparator { width: 10cqw; height: 1px; background: #ffffff60; }
+.messageGhost { position: absolute; left: -3%; bottom: -6%; color: #ffffff03; font-size: 24cqw; font-weight: 900; white-space: nowrap; letter-spacing: -.07em; animation: ghostDrift 12s ease-in-out infinite alternate; }
+.logoScene { position: absolute; inset: 0; isolation: isolate; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4cqh; overflow: hidden; }
+.logoPanel { width: min(55cqw, 700px); background: white; padding: 4cqh 4cqw; border-radius: 20px; box-shadow: 0 30px 100px #0005; animation: gridFloat 5s ease-in-out infinite; }
+.logoPanel img { display: block; width: 100%; height: auto; }
+.logoScene p { margin: 0; font-size: clamp(14px, 2cqw, 38px); letter-spacing: .25em; font-weight: 600; text-transform: uppercase; }
+.zoom { position: absolute; inset: 0; z-index: 100; background: #060b13f5; display: flex; align-items: center; justify-content: center; }
+.zoomVisual { position: relative; width: 85%; height: 85%; }
+.zoomVisual img { object-fit: contain; }
+.zoomClose { position: absolute; right: 24px; top: 24px; }
+@keyframes stageProgress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes auroraDrift { from { transform: translate(-5%, -5%) scale(.9); } to { transform: translate(8%, 8%) scale(1.15); } }
+@keyframes orbitSpin { to { transform: rotate(360deg); } }
+@keyframes sweepAcross { 0%, 15% { left: -30%; } 70%, 100% { left: 130%; } }
+@keyframes productFloat { 0%, 100% { transform: translateY(0) rotate(-2deg) scale(.95); } 50% { transform: translateY(-2.5%) rotate(2deg) scale(1.02); } }
+@keyframes gridFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3%); } }
+@keyframes shine { 0%, 15% { transform: translateX(-100%); } 75%, 100% { transform: translateX(100%); } }
+@keyframes ghostDrift { from { transform: translateX(0); } to { transform: translateX(-12%); } }
+@container (aspect-ratio < 1) {
+  .brandLogo { width: 30cqw; max-height: 70%; }
+  .brandCaption { font-size: 1.5cqw; margin-right: 9cqw; max-width: 40%; line-height: 1.6; text-align: right; }
+  .gridHeading h1 { font-size: 5cqw; }
+  .gridHeading span { font-size: 1.5cqw; }
+  .gridImage { inset: 3% 5% 30%; }
+  .gridCardInfo { inset: auto 8% 14%; gap: .3cqh; }
+  .gridCardInfo h2 { font-size: 2.1cqw; }
+  .gridCardInfo strong { font-size: 3cqw; }
+  .gridCondition { font-size: 1.2cqw; }
+  .messageTitle { font-size: 10cqw; }
+  .messageLead { font-size: 4.7cqw; }
+  .messageLine { font-size: 3.7cqw; }
+  .messageBadge { font-size: 3cqw; }
+  .messageFooter { font-size: 2.8cqw; }
+  .messageContent { gap: 2.3cqh; }
+  .footerBar { font-size: 1.7cqw; letter-spacing: .04em; }
+  .logoPanel { width: 75cqw; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shell *, .shell *::before, .shell *::after { animation: none !important; }
+  .progressFill { transform: scaleX(1); }
+}

@@ -1,189 +1,42 @@
 "use client";
 
-import React from "react";
-import styles from "./DiaporamaClient.module.css";
+import { type CSSProperties } from "react";
+import { motion } from "framer-motion";
 import type { DisplayMessage } from "./types";
-import {
-  getAlignConfig,
-  getBackgroundClass,
-  safeText,
-} from "./helpers";
+import { safeText } from "./helpers";
+import AnimatedWords from "./AnimatedWords";
+import StageDecor from "./StageDecor";
+import styles from "./DiaporamaClient.module.css";
 
-function useEntranceVisible(keyValue: string) {
-  const [visible, setVisible] = React.useState(false);
-
-  React.useEffect(() => {
-    setVisible(false);
-    const t = window.setTimeout(() => setVisible(true), 40);
-    return () => clearTimeout(t);
-  }, [keyValue]);
-
-  return visible;
-}
-
-function AnimatedLine({
-  children,
-  visible,
-  delayMs = 0,
-  hiddenClass,
-  visibleClass,
-  className = "",
-  innerClassName = "",
-  style,
-}: {
-  children: React.ReactNode;
-  visible: boolean;
-  delayMs?: number;
-  hiddenClass: string;
-  visibleClass: string;
-  className?: string;
-  innerClassName?: string;
-  style?: React.CSSProperties;
+export default function MessageSlide({ message, slideKey }: {
+  message: DisplayMessage; slideKey: string;
 }) {
-  return (
-    <div
-      className={[
-        "transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform",
-        visible ? visibleClass : hiddenClass,
-        className,
-      ].join(" ")}
-      style={{
-        transitionDelay: `${delayMs}ms`,
-        ...style,
-      }}
-    >
-      <div className={innerClassName}>{children}</div>
-    </div>
-  );
-}
-
-export default function MessageSlide({
-  message,
-  slideKey,
-}: {
-  message: DisplayMessage;
-  slideKey: string;
-}) {
-  const visible = useEntranceVisible(slideKey);
-  const align = getAlignConfig(message.textAlign);
-  const accent = message.accentColor || "#f59e0b";
-
-  const badge = safeText(message.badge);
+  const accent = message.accentColor || (message.backgroundType === "blue" ? "#66d8ff" : "#ff8a36");
   const title = safeText(message.title);
-  const line1 = safeText(message.line1);
-  const line2 = safeText(message.line2);
-  const line3 = safeText(message.line3);
-  const footerText = safeText(message.footerText);
-  const isPromo = message.template === "promo";
-
-  return (
-    <div
-      className={`absolute inset-0 z-[70] overflow-hidden rounded-2xl ${getBackgroundClass(
-        message.backgroundType
-      )}`}
-    >
-      <div className={`absolute inset-0 opacity-90 ${styles.bgPan}`} />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.10),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(245,158,11,0.16),transparent_30%)]" />
-
-      <div className="relative flex h-full w-full items-center justify-center px-10 py-10">
-        <div className={`flex max-w-[90vw] flex-col ${align.wrapper}`}>
-          {badge && (
-            <AnimatedLine
-              visible={visible}
-              delayMs={40}
-              hiddenClass={align.hidden}
-              visibleClass={align.visible}
-              className="rounded-full px-8 py-4 text-3xl font-extrabold text-white shadow-[0_0_30px_rgba(0,0,0,0.35)]"
-              innerClassName={styles.floatSoft}
-              style={{ backgroundColor: accent }}
-            >
-              {badge}
-            </AnimatedLine>
-          )}
-
-          {title && (
-            <AnimatedLine
-              visible={visible}
-              delayMs={140}
-              hiddenClass={align.hidden}
-              visibleClass={align.visible}
-              className={
-                isPromo
-                  ? "mt-8 text-6xl md:text-7xl font-black uppercase leading-none text-white"
-                  : "mt-8 text-5xl md:text-6xl font-black uppercase leading-none text-white"
-              }
-              innerClassName={styles.titleBreathe}
-            >
-              {title}
-            </AnimatedLine>
-          )}
-
-          {line1 && (
-            <AnimatedLine
-              visible={visible}
-              delayMs={260}
-              hiddenClass={align.hidden}
-              visibleClass={align.visible}
-              className="mt-8 text-3xl md:text-4xl font-light uppercase tracking-[0.18em] text-white/95"
-              innerClassName={`${styles.floatSoft} ${styles.delay1}`}
-            >
-              {line1}
-            </AnimatedLine>
-          )}
-
-          {line2 && (
-            <AnimatedLine
-              visible={visible}
-              delayMs={380}
-              hiddenClass={align.hidden}
-              visibleClass={align.visible}
-              className="mt-3 text-3xl md:text-4xl font-semibold text-white"
-              innerClassName={`${styles.floatSoft} ${styles.delay2}`}
-            >
-              {line2}
-            </AnimatedLine>
-          )}
-
-          {line3 && line3 !== "_________" && (
-            <AnimatedLine
-              visible={visible}
-              delayMs={500}
-              hiddenClass={align.hidden}
-              visibleClass={align.visible}
-              className="mt-4 text-2xl md:text-3xl font-medium text-white/85"
-              innerClassName={`${styles.floatSoft} ${styles.delay3}`}
-            >
-              {line3}
-            </AnimatedLine>
-          )}
-
-          {line3 === "_________" && (
-            <AnimatedLine
-              visible={visible}
-              delayMs={500}
-              hiddenClass={align.hidden}
-              visibleClass={align.visible}
-              className="mt-8"
-              innerClassName={`${styles.lineStretch} h-[2px] w-56 bg-white/70`}
-            >
-              <span />
-            </AnimatedLine>
-          )}
-
-          {footerText && (
-            <AnimatedLine
-              visible={visible}
-              delayMs={620}
-              hiddenClass={align.hidden}
-              visibleClass={align.visible}
-              className="mt-10 text-2xl md:text-3xl font-medium uppercase tracking-[0.14em] text-white/90"
-              innerClassName={`${styles.floatSoft} ${styles.delay4}`}
-            >
-              {footerText}
-            </AnimatedLine>
-          )}
-        </div>
-      </div>
+  const badge = safeText(message.badge);
+  const lines = [message.line1, message.line2, message.line3].map(safeText);
+  return <article key={slideKey} className={styles.messageScene}
+    data-align={message.textAlign || "center"} data-background={message.backgroundType || "black"}
+    style={{ "--accent": accent } as CSSProperties}>
+    <StageDecor />
+    <div className={styles.messageGhost} aria-hidden="true">{badge || "MULTIMÉDIA"}</div>
+    <div className={styles.messageContent}>
+      {badge && <motion.div className={styles.messageBadge} initial={{ opacity: 0, scale: .6, rotate: -8 }}
+        animate={{ opacity: 1, scale: 1, rotate: -3 }} transition={{ type: "spring", damping: 15, delay: .12 }}>
+        <span className={styles.liveDot} />{badge}
+      </motion.div>}
+      {title && <h1 className={styles.messageTitle}><AnimatedWords text={title} delay={.12} /></h1>}
+      <motion.div className={styles.messageRule} initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: .45, duration: .7 }} />
+      {lines.map((line, index) => line && (line === "_________"
+        ? <div key={index} className={styles.messageSeparator} />
+        : <motion.div key={`${index}-${line}`} className={index === 0 ? styles.messageLead : styles.messageLine}
+          initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .55 + index * .16, duration: .6 }}>
+          {line}
+        </motion.div>))}
+      {safeText(message.footerText) && <motion.div className={styles.messageFooter}
+        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.05 }}>
+        {message.footerText}<span aria-hidden="true">↗</span>
+      </motion.div>}
     </div>
-  );
+  </article>;
 }

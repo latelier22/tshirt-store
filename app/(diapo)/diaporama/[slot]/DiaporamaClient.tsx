@@ -2,29 +2,21 @@
 
 import React from "react";
 import Image from "next/image";
-import Header from "@/components/Header";
-import EtiquetteProduit from "./Etiquette";
-import MessageSlide from "./MessageSlide";
-import ProductVisual from "./ProductVisual";
-import ProductStatusOverlay from "./ProductStatusOverlay";
-import type { DisplayMessage, DiapoPhase } from "./types";
-import { getMessageDurationMs, firstImage } from "./helpers";
+import { AnimatePresence, motion } from "framer-motion";
+import { Pause, Play, ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { HiboutikProduct } from "@/app/types/ProductType";
+import { formatPrice } from "@/app/lib/utils";
+import { getMessageDurationMs, firstImage, getEtatBadge, getPrice } from "./helpers";
+import type { DisplayMessage } from "./types";
+import ProductSpotlight from "./ProductSpotlight";
+import ProductStatusOverlay from "./ProductStatusOverlay";
+import MessageSlide from "./MessageSlide";
+import SignageShell from "./SignageShell";
+import styles from "./DiaporamaClient.module.css";
 
 const ITEMS_PER_PAGE = 9;
-const GRID_SECONDS = 5;
-
-// durée totale d'affichage d'un produit
-const PRODUCT_DISPLAY_MS = 6200;
-
-// apparition de l'étiquette / infos
-const DIAPO_LABEL_DELAY_MS = 900;
-
-// début de sortie avant la fin
-const DIAPO_EXIT_MS = PRODUCT_DISPLAY_MS - 800;
-
-// clic manuel pour passer plus vite
-const CLICK_NEXT_MS = 760;
+const GRID_DISPLAY_MS = 6000;
+const PRODUCT_DISPLAY_MS = 8200;
 
 type SequenceStep =
   | {
@@ -137,404 +129,110 @@ function buildSequenceSteps(
   return steps;
 }
 
-export default function DiaporamaClient({
-  products,
-  messages = [],
-  portrait = "0",
-}: {
-  products: HiboutikProduct[];
-  messages?: DisplayMessage[];
-  portrait?: string;
+export default function DiaporamaClient({ products, messages = [], portrait = "0" }: {
+  products: HiboutikProduct[]; messages?: DisplayMessage[]; portrait?: string;
 }) {
-  const items = products ?? [];
-
   const [mode, setMode] = React.useState<"grid" | "sequence">("grid");
   const [gridPage, setGridPage] = React.useState(0);
   const [sequenceIndex, setSequenceIndex] = React.useState(0);
   const [messageIndexInGroup, setMessageIndexInGroup] = React.useState(0);
-
   const [paused, setPaused] = React.useState(false);
   const [zoomItem, setZoomItem] = React.useState<HiboutikProduct | null>(null);
-  const [fade, setFade] = React.useState(true);
-  const [diapoPhase, setDiapoPhase] = React.useState<DiapoPhase>("hero");
-
-  const totalPages = Math.max(1, Math.ceil(items.length / ITEMS_PER_PAGE));
-
-  React.useEffect(() => {
-    if (gridPage >= totalPages) {
-      setGridPage(0);
-    }
-  }, [gridPage, totalPages]);
-
-  const currentGrid = React.useMemo(() => {
-    const start = gridPage * ITEMS_PER_PAGE;
-    const end = start + ITEMS_PER_PAGE;
-    return items.slice(start, end);
-  }, [items, gridPage]);
-
-  const messageGroups = React.useMemo(() => {
-    return groupMessagesByOrder(messages);
-  }, [messages]);
-
-  const pageSteps = React.useMemo(() => {
-    return buildSequenceSteps(currentGrid, messageGroups);
-  }, [currentGrid, messageGroups]);
-
-  const currentStep =
-    mode === "sequence" ? pageSteps[sequenceIndex] ?? null : null;
-
-  const currentMessage =
-    currentStep?.type === "messages"
-      ? currentStep.messages[messageIndexInGroup] ?? null
-      : null;
-
-  const nextGrid = React.useCallback(() => {
-    setGridPage((p) => (p + 1) % totalPages);
-    setMode("grid");
-    setSequenceIndex(0);
-    setMessageIndexInGroup(0);
-    setFade(true);
-    setDiapoPhase("hero");
-  }, [totalPages]);
-
-  const prevGrid = React.useCallback(() => {
-    setGridPage((p) => (p - 1 + totalPages) % totalPages);
-    setMode("grid");
-    setSequenceIndex(0);
-    setMessageIndexInGroup(0);
-    setFade(true);
-    setDiapoPhase("hero");
-  }, [totalPages]);
-
-  const goToNextPageGrid = React.useCallback(() => {
-    setMode("grid");
-    setGridPage((p) => (p + 1) % totalPages);
-    setSequenceIndex(0);
-    setMessageIndexInGroup(0);
-    setFade(true);
-    setDiapoPhase("hero");
-  }, [totalPages]);
-
-  const advanceSequence = React.useCallback(() => {
-    if (mode !== "sequence") return;
-
-    if (!currentStep) {
-      goToNextPageGrid();
-      return;
-    }
-
-    // Si on est dans un groupe de messages, on enchaîne ceux du même order
-    if (currentStep.type === "messages") {
-      if (messageIndexInGroup < currentStep.messages.length - 1) {
-        setMessageIndexInGroup((v) => v + 1);
-        return;
-      }
-    }
-
-    const nextIndex = sequenceIndex + 1;
-
-    if (nextIndex >= pageSteps.length) {
-      goToNextPageGrid();
-      return;
-    }
-
-    setSequenceIndex(nextIndex);
-    setMessageIndexInGroup(0);
-    setFade(true);
-    setDiapoPhase("hero");
-  }, [
-    mode,
-    currentStep,
-    messageIndexInGroup,
-    sequenceIndex,
-    pageSteps.length,
-    goToNextPageGrid,
-  ]);
-
-  const nextProduct = React.useCallback(() => {
-    if (mode !== "sequence") return;
-    if (!currentStep || currentStep.type !== "product") return;
-
-    setDiapoPhase("exit");
-    setFade(false);
-
-    window.setTimeout(() => {
-      advanceSequence();
-    }, CLICK_NEXT_MS);
-  }, [mode, currentStep, advanceSequence]);
-
-  React.useEffect(() => {
-    if (paused || zoomItem || mode !== "grid") return;
-    if (!pageSteps.length) return;
-
-    const t = window.setTimeout(() => {
-      setMode("sequence");
-      setSequenceIndex(0);
-      setMessageIndexInGroup(0);
-      setFade(true);
-      setDiapoPhase("hero");
-    }, GRID_SECONDS * 1000);
-
-    return () => clearTimeout(t);
-  }, [paused, zoomItem, mode, pageSteps.length]);
-
-  React.useEffect(() => {
-    if (paused || zoomItem || mode !== "sequence" || !currentStep) return;
-
-    if (currentStep.type === "messages" && currentMessage) {
-      const t = window.setTimeout(() => {
-        advanceSequence();
-      }, getMessageDurationMs(currentMessage, 4));
-
-      return () => clearTimeout(t);
-    }
-
-    if (currentStep.type === "product") {
-      setFade(true);
-      setDiapoPhase("hero");
-
-      const t1 = window.setTimeout(() => {
-        setDiapoPhase("label");
-      }, DIAPO_LABEL_DELAY_MS);
-
-      const t2 = window.setTimeout(() => {
-        setDiapoPhase("exit");
-        setFade(false);
-      }, DIAPO_EXIT_MS);
-
-      const t3 = window.setTimeout(() => {
-        advanceSequence();
-      }, PRODUCT_DISPLAY_MS);
-
-      return () => {
-        clearTimeout(t1);
-        clearTimeout(t2);
-        clearTimeout(t3);
-      };
-    }
-  }, [
-    paused,
-    zoomItem,
-    mode,
-    currentStep,
-    currentMessage,
-    advanceSequence,
-  ]);
-
+  const totalPages = Math.max(1, Math.ceil(products.length / ITEMS_PER_PAGE));
+  const currentGrid = React.useMemo(() => products.slice(
+    (gridPage % totalPages) * ITEMS_PER_PAGE, (gridPage % totalPages + 1) * ITEMS_PER_PAGE
+  ), [products, gridPage, totalPages]);
+  const messageGroups = React.useMemo(() => groupMessagesByOrder(messages), [messages]);
+  const pageSteps = React.useMemo(() => buildSequenceSteps(currentGrid, messageGroups), [currentGrid, messageGroups]);
+  const currentStep = mode === "sequence" ? pageSteps[sequenceIndex] : null;
+  const currentMessage = currentStep?.type === "messages" ? currentStep.messages[messageIndexInGroup] : null;
+  const currentProduct = currentStep?.type === "product" ? currentStep.product : null;
   const isPortrait = portrait === "1" || portrait === "-1";
-  const angle = portrait === "-1" ? -90 : 90;
+  const isStopped = paused || !!zoomItem;
 
-  const containerStyle = isPortrait
-    ? {
-        position: "absolute" as const,
-        top: "50%",
-        left: "50%",
-        width: "100vh",
-        height: "100vw",
-        transform: `translate(-50%, -50%) rotate(${angle}deg)`,
-      }
-    : {
-        position: "absolute" as const,
-        inset: 0,
-      };
+  const goGrid = React.useCallback((direction: number) => {
+    setGridPage(page => (page + direction + totalPages) % totalPages);
+    setMode("grid"); setSequenceIndex(0); setMessageIndexInGroup(0);
+  }, [totalPages]);
 
-  const currentProduct =
-    currentStep?.type === "product" ? currentStep.product : null;
+  const advance = React.useCallback(() => {
+    if (mode === "grid") {
+      setMode("sequence"); setSequenceIndex(0); setMessageIndexInGroup(0);
+      return;
+    }
+    if (currentStep?.type === "messages" && messageIndexInGroup < currentStep.messages.length - 1) {
+      setMessageIndexInGroup(index => index + 1);
+    } else if (sequenceIndex + 1 < pageSteps.length) {
+      setSequenceIndex(index => index + 1); setMessageIndexInGroup(0);
+    } else {
+      goGrid(1);
+    }
+  }, [mode, currentStep, messageIndexInGroup, sequenceIndex, pageSteps.length, goGrid]);
 
-  return (
-    <>
-      <div className="fixed inset-0 overflow-hidden bg-black text-white">
-        <div style={containerStyle}>
-          {mode === "grid" && <Header />}
+  const durationMs = mode === "grid" ? GRID_DISPLAY_MS
+    : currentMessage ? getMessageDurationMs(currentMessage, 5) : PRODUCT_DISPLAY_MS;
+  const sceneKey = mode === "grid" ? `grid-${gridPage}`
+    : `${gridPage}-${currentStep?.key}-${messageIndexInGroup}`;
 
-          {mode === "grid" && (
-            <div className="flex h-full w-full flex-col p-6">
-              <div className="grid flex-1 grid-cols-3 grid-rows-3 gap-4">
-                {currentGrid.map((p, idx) => (
-                  <div
-                    key={`${p.product_id ?? idx}-${idx}`}
-                    className="relative cursor-pointer overflow-hidden rounded-2xl bg-amber-500"
-                    onClick={() => setZoomItem(p)}
-                  >
-                    <ProductVisual
-                      product={p}
-                      rotationMode={portrait}
-                      phase="label"
-                    />
-                  </div>
-                ))}
-              </div>
+  React.useEffect(() => {
+    if (isStopped || !pageSteps.length) return;
+    const timer = window.setTimeout(advance, durationMs);
+    return () => clearTimeout(timer);
+  }, [isStopped, advance, durationMs, pageSteps.length]);
 
-              {paused && (
-                <div className="mt-4 flex items-center justify-center gap-6">
-                  <button
-                    onClick={prevGrid}
-                    className="rounded-full bg-white/10 px-6 py-3 text-2xl hover:bg-white/20"
-                  >
-                    ◀
-                  </button>
-
-                  <div className="text-lg font-semibold">
-                    Grille {gridPage + 1} / {totalPages}
-                  </div>
-
-                  <button
-                    onClick={nextGrid}
-                    className="rounded-full bg-white/10 px-6 py-3 text-2xl hover:bg-white/20"
-                  >
-                    ▶
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {mode === "sequence" && currentProduct && (
-            <div className="h-full w-full p-6">
-              {!isPortrait ? (
-                <div
-                  className={[
-                    "flex h-full w-full gap-6 overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]",
-                    diapoPhase === "exit"
-                      ? "translate-x-12 opacity-0"
-                      : "translate-x-0 opacity-100",
-                  ].join(" ")}
-                >
-                  <div
-                    className="shrink-0 overflow-hidden transition-[width,opacity,transform] duration-900 ease-[cubic-bezier(0.22,1,0.36,1)]"
-                    style={{
-                      width: diapoPhase === "hero" ? 0 : 390,
-                      maxWidth: "34%",
-                      opacity: diapoPhase === "hero" ? 0 : 1,
-                      transform:
-                        diapoPhase === "hero"
-                          ? "translateX(-24px)"
-                          : diapoPhase === "exit"
-                          ? "translateX(-12px)"
-                          : "translateX(0)",
-                    }}
-                  >
-                    <div className="h-full w-[390px] max-w-full">
-                      <EtiquetteProduit product={currentProduct} landscape />
-                    </div>
-                  </div>
-
-                  <div
-                    className="relative min-w-0 flex-1 cursor-pointer overflow-hidden rounded-2xl bg-black"
-                    onClick={nextProduct}
-                  >
-                    <ProductVisual
-                      key={`diapo-${currentProduct?.product_id}-${sequenceIndex}`}
-                      product={currentProduct}
-                      fade={fade}
-                      large
-                      showInfo
-                      rotationMode={portrait}
-                      phase={diapoPhase}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div
-                  className={[
-                    "flex h-full w-full flex-col gap-4 overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]",
-                    diapoPhase === "exit"
-                      ? "-translate-y-12 opacity-0"
-                      : "translate-y-0 opacity-100",
-                  ].join(" ")}
-                >
-                  <div
-                    className="relative min-h-0 flex-1 cursor-pointer overflow-hidden rounded-2xl bg-black"
-                    onClick={nextProduct}
-                  >
-                    <ProductVisual
-                      key={`diapo-${currentProduct?.product_id}-${sequenceIndex}`}
-                      product={currentProduct}
-                      fade={fade}
-                      large
-                      showInfo
-                      rotationMode={portrait}
-                      phase={diapoPhase}
-                    />
-                  </div>
-
-                  <div
-                    className="shrink-0 overflow-hidden transition-[height,opacity,transform] duration-900 ease-[cubic-bezier(0.22,1,0.36,1)]"
-                    style={{
-                      height: diapoPhase === "hero" ? 0 : 430,
-                      maxHeight: "44%",
-                      opacity: diapoPhase === "hero" ? 0 : 1,
-                      transform:
-                        diapoPhase === "hero"
-                          ? "translateY(24px)"
-                          : diapoPhase === "exit"
-                          ? "translateY(12px)"
-                          : "translateY(0)",
-                    }}
-                  >
-                    <div className="h-[430px] max-h-full w-full">
-                      <EtiquetteProduit
-                        product={currentProduct}
-                        landscape={false}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {mode === "sequence" && currentMessage && (
-            <div className="absolute inset-0 z-[60] p-6">
-              <MessageSlide
-                slideKey={`message-${currentMessage.id}-${sequenceIndex}-${messageIndexInGroup}`}
-                message={currentMessage}
-              />
-            </div>
-          )}
-
-          <div className="absolute right-4 top-4 z-50">
-            <button
-              onClick={() => {
-                if (paused) {
-                  setPaused(false);
-                } else {
-                  setPaused(true);
-                  setMode("grid");
-                  setSequenceIndex(0);
-                  setMessageIndexInGroup(0);
-                }
-              }}
-              className="rounded-full bg-black/60 px-4 py-2 text-xl"
-            >
-              {paused ? "▶" : "⏸"}
-            </button>
+  return <SignageShell portrait={portrait} paused={isStopped} sceneKey={sceneKey} durationMs={durationMs}
+    footer={paused ? "Lecture en pause" : mode === "grid" ? `La sélection · ${gridPage % totalPages + 1} / ${totalPages}`
+      : currentProduct?.salePending ? "Vente en cours · à retrouver demain : notre nouvelle sélection" : "À découvrir en magasin"}
+    controls={<div className={styles.controls}>
+      {paused && <>
+        <button className={styles.controlButton} onClick={() => goGrid(-1)} aria-label="Grille précédente"><ChevronLeft size={20} /></button>
+        <button className={styles.controlButton} onClick={() => goGrid(1)} aria-label="Grille suivante"><ChevronRight size={20} /></button>
+      </>}
+      <button className={styles.controlButton} aria-label={paused ? "Reprendre le diaporama" : "Mettre en pause"}
+        onClick={() => setPaused(value => !value)}>{paused ? <Play size={18} /> : <Pause size={18} />}</button>
+    </div>}>
+    <AnimatePresence mode="sync" initial={false}>
+      <motion.div key={sceneKey} className="absolute inset-0"
+        initial={{ opacity: 0, x: 65, scale: 1.03 }} animate={{ opacity: 1, x: 0, scale: 1 }}
+        exit={{ opacity: 0, x: -65, scale: .97, pointerEvents: "none" }}
+        transition={{ duration: .55, ease: [.22, 1, .36, 1] }}>
+        {mode === "grid" && <section className={styles.gridScene}>
+          <div className={styles.gridHeading}>
+            <h1>Repérez. <em>Craquez.</em></h1><span>La sélection en magasin</span>
           </div>
-
-          {zoomItem && firstImage(zoomItem) && (
-            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/95">
-              <div className="relative h-[80%] w-[80%]">
-                <Image
-                  src={firstImage(zoomItem)!}
-                  alt={zoomItem.product_model ?? ""}
-                  fill
-                  unoptimized
-                  className="object-contain"
-                />
-                <ProductStatusOverlay productId={zoomItem.product_id}
-                  salePending={zoomItem.salePending} large />
-              </div>
-
-              <button
-                className="absolute right-4 top-4 text-3xl"
-                onClick={() => setZoomItem(null)}
-              >
-                ✕
-              </button>
-            </div>
-          )}
+          <div className={styles.productGrid}>
+            {currentGrid.map((product, index) => {
+              const image = firstImage(product);
+              const condition = getEtatBadge(product);
+              return <motion.button key={product.product_id} className={styles.gridCard}
+                onClick={() => setZoomItem(product)} aria-label={`Agrandir ${product.product_model || "le produit"}`}
+                initial={{ opacity: 0, y: 40, scale: .9 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ delay: index * .055, duration: .6, ease: [.22, 1, .36, 1] }}>
+                <div className={styles.gridImage} style={{ animationDelay: `${index * -.4}s` }}>
+                  {image && <Image src={image} alt={product.product_model || ""} fill unoptimized sizes="30vw" />}
+                </div>
+                <div className={styles.gridCardInfo}>
+                  {condition && <span className={styles.gridCondition}>{condition.label}</span>}
+                  <h2>{product.product_model}</h2><strong>{formatPrice(getPrice(product).price)}</strong>
+                </div>
+                <ProductStatusOverlay productId={product.product_id} salePending={product.salePending} />
+              </motion.button>;
+            })}
+          </div>
+        </section>}
+        {currentProduct && <ProductSpotlight product={currentProduct} index={sequenceIndex}
+          portrait={isPortrait} paused={isStopped} onNext={() => { if (!isStopped) advance(); }} />}
+        {currentMessage && <MessageSlide message={currentMessage} slideKey={sceneKey} />}
+      </motion.div>
+    </AnimatePresence>
+    <AnimatePresence>
+      {zoomItem && <motion.div className={styles.zoom} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+        <div className={styles.zoomVisual}>
+          {firstImage(zoomItem) && <Image src={firstImage(zoomItem)!} alt={zoomItem.product_model || ""} fill unoptimized sizes="90vw" />}
+          <ProductStatusOverlay productId={zoomItem.product_id} salePending={zoomItem.salePending} large />
         </div>
-      </div>
-    </>
-  );
+        <button className={`${styles.controlButton} ${styles.zoomClose}`} onClick={() => setZoomItem(null)} aria-label="Fermer le zoom"><X /></button>
+      </motion.div>}
+    </AnimatePresence>
+  </SignageShell>;
 }
