@@ -96,7 +96,7 @@ export default function ProductSpotlight({ product, index, portrait, paused, onN
             animate={{ opacity: 1, x: 0, scale: 1, rotate: 0 }}
             exit={{ opacity: 0, x: reduced ? 0 : -50, scale: reduced ? 1 : 1.08 }}
             transition={{ duration: .7, ease: [.22, 1, .36, 1] }}>
-            <CutoutImage src={currentSource} alt={product.product_model || "Produit"} priority
+            <CutoutImage src={currentSource} alt={product.product_model || "Produit"} priority lighting={index}
               className={styles.productImage} sizes="70vw" />
           </motion.div>}
         </AnimatePresence>

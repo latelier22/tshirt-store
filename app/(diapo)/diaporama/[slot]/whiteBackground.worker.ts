@@ -1,9 +1,10 @@
 import { removeWhiteBackground } from "@/app/lib/white-background";
+import { traceProductOutline, type ProcessedProductImage } from "@/app/lib/product-outline";
 
 type Job = { id: number; src: string };
 const scope = self as unknown as {
   onmessage: ((event: MessageEvent<Job>) => void) | null;
-  postMessage: (data: { id: number; blob: Blob | null }) => void;
+  postMessage: (data: { id: number; asset: ProcessedProductImage | null }) => void;
 };
 
 scope.onmessage = async ({ data: { id, src } }) => {
@@ -21,11 +22,12 @@ scope.onmessage = async ({ data: { id, src } }) => {
     context.drawImage(bitmap, 0, 0, width, height);
     const image = context.getImageData(0, 0, width, height);
     const changed = removeWhiteBackground(image.data, width, height);
-    if (!changed) { scope.postMessage({ id, blob: null }); return; }
+    const outline = traceProductOutline(image.data, width, height);
+    if (!changed) { scope.postMessage({ id, asset: { blob: null, outline } }); return; }
     context.putImageData(image, 0, 0);
-    scope.postMessage({ id, blob: await canvas.convertToBlob({ type: "image/png" }) });
+    scope.postMessage({ id, asset: { blob: await canvas.convertToBlob({ type: "image/png" }), outline } });
   } catch {
-    scope.postMessage({ id, blob: null });
+    scope.postMessage({ id, asset: null });
   } finally {
     bitmap?.close();
   }
