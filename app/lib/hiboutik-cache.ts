@@ -3,6 +3,7 @@
 // ✅ On ne lit plus Hiboutik direct.
 // ✅ On lit ton cache VPS : https://api.multimedia-services.fr
 // ✅ On garde le proxy d’images /api/hiboutik/image (côté Next) pour ne rien casser.
+import { selectProductsByTag } from "./products-by-tag";
 
 function cacheBase() {
   const base = process.env.CACHE_API_BASE || "https://api.multimedia-services.fr";
@@ -124,22 +125,28 @@ export async function hiboutikGetProductWithRaw(id: string) {
 export async function hiboutikGetProductsListByTag(tag: string) {
   const base = cacheBase();
 
-  const url = new URL(`${base}/api/productsByTag`);
-  url.searchParams.set("tag", tag);
+  // productsByTag returns only the first 100 matches and ignores from/to.
+  // Read the paginated catalogue instead, then match the screen's exact tag.
+  const pageSize = 500;
+  const items: any[] = [];
+  for (let from = 0; ; from += pageSize) {
+    const url = new URL(`${base}/api/products`);
+    url.searchParams.set("from", String(from));
+    url.searchParams.set("to", String(from + pageSize - 1));
 
-  const res = await fetch(url.toString(), {
-    cache: "no-store",
-  });
+    const res = await fetch(url.toString(), { cache: "no-store" });
 
-  const text = await res.text();
-  const json = text ? safeJsonParse<any>(text) : null;
+    const text = await res.text();
+    const json = text ? safeJsonParse<any>(text) : null;
 
-  if (!res.ok) {
-    throw new Error(`CACHE productsByTag ${res.status}: ${text.slice(0, 300)}`);
+    if (!res.ok || !Array.isArray(json?.data)) {
+      throw new Error(`CACHE products ${res.status}: ${text.slice(0, 300)}`);
+    }
+
+    items.push(...json.data);
+    if (json.data.length < pageSize) break;
   }
-
-  const items: any[] = Array.isArray(json?.data) ? json.data : [];
-  return items;
+  return selectProductsByTag(items, tag);
 }
 
 export async function hiboutikGetProductsByTag(tag: string) {
