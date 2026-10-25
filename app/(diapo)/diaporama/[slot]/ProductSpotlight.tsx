@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type CSSProperties } from "react";
-import Image from "next/image";
+import CutoutImage, { prepareCutout } from "./CutoutImage";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { HiboutikProduct } from "@/app/types/ProductType";
 import { formatPrice } from "@/app/lib/utils";
@@ -38,6 +38,10 @@ export default function ProductSpotlight({ product, index, portrait, paused, onN
     .slice(0, 3);
   const sources = images.length ? images : first ? [first] : [];
   const imageSignature = sources.join("|");
+
+  useEffect(() => {
+    for (const src of imageSignature.split("|").filter(Boolean)) void prepareCutout(src);
+  }, [imageSignature]);
 
   useEffect(() => {
     if (paused || reduced || sources.length < 2) return;
@@ -84,6 +88,7 @@ export default function ProductSpotlight({ product, index, portrait, paused, onN
     <button className={styles.productStage} onClick={onNext} aria-label="Afficher le produit suivant">
       <span className={styles.stageWord} aria-hidden="true">{product.product_brand_name || "DÉCOUVRIR"}</span>
       <div className={styles.productHalo} />
+      <div className={styles.groundShadow} aria-hidden="true" />
       <div className={styles.imageFloat}>
         <AnimatePresence mode="sync" initial={false}>
           {currentSource && <motion.div key={currentSource} className={styles.heroImage}
@@ -91,7 +96,7 @@ export default function ProductSpotlight({ product, index, portrait, paused, onN
             animate={{ opacity: 1, x: 0, scale: 1, rotate: 0 }}
             exit={{ opacity: 0, x: reduced ? 0 : -50, scale: reduced ? 1 : 1.08 }}
             transition={{ duration: .7, ease: [.22, 1, .36, 1] }}>
-            <Image src={currentSource} alt={product.product_model || "Produit"} fill unoptimized priority
+            <CutoutImage src={currentSource} alt={product.product_model || "Produit"} priority
               className={styles.productImage} sizes="70vw" />
           </motion.div>}
         </AnimatePresence>

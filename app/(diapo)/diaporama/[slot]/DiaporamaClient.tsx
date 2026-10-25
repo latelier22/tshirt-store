@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
+import CutoutImage from "./CutoutImage";
 import { AnimatePresence, motion } from "framer-motion";
 import { Pause, Play, ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { HiboutikProduct } from "@/app/types/ProductType";
@@ -209,7 +209,7 @@ export default function DiaporamaClient({ products, messages = [], portrait = "0
                 initial={{ opacity: 0, y: 40, scale: .9 }} animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ delay: index * .055, duration: .6, ease: [.22, 1, .36, 1] }}>
                 <div className={styles.gridImage} style={{ animationDelay: `${index * -.4}s` }}>
-                  {image && <Image src={image} alt={product.product_model || ""} fill unoptimized sizes="30vw" />}
+                  {image && <CutoutImage src={image} alt={product.product_model || ""} sizes="30vw" />}
                 </div>
                 <div className={styles.gridCardInfo}>
                   {condition && <span className={styles.gridCondition}>{condition.label}</span>}
@@ -228,7 +228,7 @@ export default function DiaporamaClient({ products, messages = [], portrait = "0
     <AnimatePresence>
       {zoomItem && <motion.div className={styles.zoom} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
         <div className={styles.zoomVisual}>
-          {firstImage(zoomItem) && <Image src={firstImage(zoomItem)!} alt={zoomItem.product_model || ""} fill unoptimized sizes="90vw" />}
+          {firstImage(zoomItem) && <CutoutImage src={firstImage(zoomItem)!} alt={zoomItem.product_model || ""} sizes="90vw" />}
           <ProductStatusOverlay productId={zoomItem.product_id} salePending={zoomItem.salePending} large />
         </div>
         <button className={`${styles.controlButton} ${styles.zoomClose}`} onClick={() => setZoomItem(null)} aria-label="Fermer le zoom"><X /></button>
