@@ -4,9 +4,9 @@ import React from "react";
 import Image from "next/image";
 import Header from "@/components/Header";
 import EtiquetteProduit from "./Etiquette";
-import ProductUpdatesListener from "@/components/ProductUpdatesListener";
 import MessageSlide from "./MessageSlide";
 import ProductVisual from "./ProductVisual";
+import ProductStatusOverlay from "./ProductStatusOverlay";
 import type { DisplayMessage, DiapoPhase } from "./types";
 import { getMessageDurationMs, firstImage } from "./helpers";
 import type { HiboutikProduct } from "@/app/types/ProductType";
@@ -343,8 +343,6 @@ export default function DiaporamaClient({
 
   return (
     <>
-      <ProductUpdatesListener />
-
       <div className="fixed inset-0 overflow-hidden bg-black text-white">
         <div style={containerStyle}>
           {mode === "grid" && <Header />}
@@ -523,6 +521,8 @@ export default function DiaporamaClient({
                   unoptimized
                   className="object-contain"
                 />
+                <ProductStatusOverlay productId={zoomItem.product_id}
+                  salePending={zoomItem.salePending} large />
               </div>
 
               <button

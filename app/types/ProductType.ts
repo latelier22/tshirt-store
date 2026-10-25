@@ -1,7 +1,7 @@
 // app/types/ProductType.ts
 
 export type StockEntry = {
-  stock_available?: 0 | 1 | boolean;
+  stock_available?: number | string | boolean;
   [k: string]: unknown;
 };
 
@@ -42,7 +42,9 @@ export type HiboutikProduct = {
   category_slug?: string;
 
   stock_available_global?: 0 | 1 | boolean;
-  stock_available?: StockEntry[];
+  stock_available?: StockEntry[] | number | string | boolean;
+  product_display_www?: boolean | 0 | 1 | "0" | "1";
+  salePending?: boolean;
 
   images?: string[];
   thumb?: string;

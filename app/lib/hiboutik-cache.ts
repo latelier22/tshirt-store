@@ -121,7 +121,7 @@ export async function hiboutikGetProductWithRaw(id: string) {
   };
 }
 
-export async function hiboutikGetProductsByTag(tag: string) {
+export async function hiboutikGetProductsListByTag(tag: string) {
   const base = cacheBase();
 
   const url = new URL(`${base}/api/productsByTag`);
@@ -139,9 +139,11 @@ export async function hiboutikGetProductsByTag(tag: string) {
   }
 
   const items: any[] = Array.isArray(json?.data) ? json.data : [];
+  return items;
+}
 
-
-
+export async function hiboutikGetProductsByTag(tag: string) {
+  const items = await hiboutikGetProductsListByTag(tag);
   const detailedItems = await Promise.all(
     items.map(async (item) => {
       try {

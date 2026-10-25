@@ -5,10 +5,10 @@ import Image from "next/image";
 import { formatPrice } from "@/app/lib/utils";
 import styles from "./DiaporamaClient.module.css";
 import type { DiapoPhase } from "./types";
+import ProductStatusOverlay from "./ProductStatusOverlay";
 import {
   computeContainFrame,
   firstImage,
-  hasUsableImage, 
   getEtatBadge,
   getEtatImageTopRightStyle,
   getInfoGradientClass,
@@ -44,10 +44,6 @@ export default function ProductVisual({
 
   const imageSrc = firstImage(product);
 
-if (!imageSrc) {
-  return null;
-}
-
   React.useEffect(() => {
     const el = wrapperRef.current;
     if (!el) return;
@@ -65,7 +61,7 @@ if (!imageSrc) {
     ro.observe(el);
 
     return () => ro.disconnect();
-  }, []);
+  }, [imageSrc]);
 
   const frame = React.useMemo(
     () => computeContainFrame(box.width, box.height, img.width, img.height),
@@ -94,6 +90,8 @@ if (!imageSrc) {
 
   const infoMotionClass = getInfoMotionClass(rotationMode, phase, large);
 
+  if (!imageSrc) return null;
+
   return (
     <div ref={wrapperRef} className="absolute inset-0" onClick={onClick}>
       <Image
@@ -115,6 +113,9 @@ if (!imageSrc) {
           });
         }}
       />
+
+      <ProductStatusOverlay productId={product.product_id}
+        salePending={product.salePending} large={large} />
 
       {frame && (
         <div

@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import DiaporamaClient from "./DiaporamaClient";
-import DiaporamaMessagesClient from "./DiaporamaMessagesClient";
+import DailyDiaporamaClient from "./DailyDiaporamaClient";
 import type { DisplayMessage } from "./types";
 import { hiboutikGetProductsByTag } from "@/app/lib/hiboutik-cache";
 import type {
@@ -10,6 +9,8 @@ import type {
 import { hiboutikGetTagsProductsIndex } from "@/app/lib/hiboutik";
 import { syliusGetMessages } from "@/app/lib/sylius/api";
 import { hasUsableImage } from "./helpers";
+import { isDiaporamaProductAvailable } from "@/app/lib/diaporama-stock";
+import StockRefresh from "./StockRefresh";
 
 type Props = {
   params: Promise<{ slot: string }>;
@@ -30,15 +31,10 @@ function extractTagIds(rawTags: unknown): number[] {
   return Array.from(new Set(ids));
 }
 
-function normalizePortrait(v?: string): 0 | 1 | -1 {
-  if (v === "1") return 1;
-  if (v === "-1") return -1;
-  return 0;
-}
-
 function isMessageActive(message: DisplayMessage, now = new Date()) {
   const startOk = !message.startsAt || new Date(message.startsAt) <= now;
   const endOk = !message.endsAt || new Date(message.endsAt) >= now;
+
   return startOk && endOk;
 }
 
@@ -50,7 +46,6 @@ export default async function DiaporamaSlotPage({
   const sp = await searchParams;
 
   const portraitMode = sp?.portrait ?? "0";
-  const portrait = normalizePortrait(portraitMode);
 
   if (slot === "tablette") {
     redirect("https://boutique.multimedia-services.fr/tablet/wait?device=TAB1");
@@ -64,38 +59,23 @@ export default async function DiaporamaSlotPage({
         .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
     : [];
 
-  const rawProducts: HiboutikProduct[] = await hiboutikGetProductsByTag(slot);
-const filteredProducts: HiboutikProduct[] = rawProducts.filter(
-  (p) => hasUsableImage(p) && Number(p.stock_available) > 0
-);
+  const rawProducts: HiboutikProduct[] =
+    await hiboutikGetProductsByTag(slot);
 
+  const filteredProducts: HiboutikProduct[] = rawProducts.filter(
+    (p) => hasUsableImage(p) && isDiaporamaProductAvailable(p)
+  );
 
-const products = [...filteredProducts];
+  const products = [...filteredProducts];
+  const productIds = products.map((product) => product.product_id).sort((a, b) => a - b);
+  const stockRefresh = <StockRefresh slot={slot} productIds={productIds} />;
 
-for (let i = products.length - 1; i > 0; i--) {
-  const j = Math.floor(Math.random() * (i + 1));
-  [products[i], products[j]] = [products[j], products[i]];
-}
-
-
-  if (!products.length) {
-    if (activeMessages.length > 0) {
-      return (
-        <DiaporamaMessagesClient
-          messages={activeMessages}
-          portrait={portrait}
-        />
-      );
-    }
-
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-black text-white p-8">
-        Aucun produit avec le tag "{slot}".
-      </main>
-    );
+  for (let i = products.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [products[i], products[j]] = [products[j], products[i]];
   }
 
-  const tagIndex = await hiboutikGetTagsProductsIndex();
+  const tagIndex = products.length ? await hiboutikGetTagsProductsIndex() : new Map<number, HiboutikResolvedTag>();
 
   const productsWithTags: HiboutikProductWithFullTags[] = products.map(
     (p: any) => {
@@ -113,10 +93,14 @@ for (let i = products.length - 1; i > 0; i--) {
   );
 
   return (
-    <DiaporamaClient
-      products={productsWithTags}
-      messages={activeMessages}
-      portrait={portraitMode}
-    />
+    <>
+      {stockRefresh}
+      <DailyDiaporamaClient
+        slot={slot}
+        products={productsWithTags}
+        messages={activeMessages}
+        portrait={portraitMode}
+      />
+    </>
   );
 }
