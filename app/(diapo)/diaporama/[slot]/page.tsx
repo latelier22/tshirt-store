@@ -52,12 +52,12 @@ export default async function DiaporamaSlotPage({
   }
 
   const rawMessages = await syliusGetMessages(slot);
+  const messageList: DisplayMessage[] = Array.isArray(rawMessages) ? rawMessages
+    : Array.isArray(rawMessages?.data) ? rawMessages.data : [];
 
-  const activeMessages: DisplayMessage[] = Array.isArray(rawMessages)
-    ? rawMessages
-        .filter((m) => isMessageActive(m))
-        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-    : [];
+  const activeMessages: DisplayMessage[] = messageList
+    .filter((m) => isMessageActive(m))
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 
   const rawProducts: HiboutikProduct[] =
     await hiboutikGetProductsByTag(slot);

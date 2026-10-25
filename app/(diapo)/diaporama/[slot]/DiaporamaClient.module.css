@@ -159,6 +159,12 @@
 .gridCardInfo strong { color: #ffb875; font-size: clamp(14px, 1.9cqw, 34px); letter-spacing: -.04em; }
 .gridCondition { font-size: clamp(8px, .7cqw, 13px); color: #b8c9dd; font-weight: 600; text-transform: uppercase; }
 .gridNav { display: flex; justify-content: center; align-items: center; gap: 20px; }
+.boardNavigation { position: absolute; bottom: 7%; left: 50%; transform: translateX(-50%); z-index: 90; display: flex; align-items: center; gap: clamp(8px, 1.5cqw, 28px); max-width: 96%; padding: 8px 12px; border: 1px solid #ffffff30; border-radius: 16px; background: #101722f5; box-shadow: 0 8px 30px #0008; }
+.boardNavButton { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 8px 14px; border: 1px solid #ff9c5670; border-radius: 10px; background: #ff8a3620; color: white; font-size: clamp(12px, 1.1cqw, 20px); font-weight: 700; cursor: pointer; }
+.boardNavButton:hover:not(:disabled), .boardNavButton:focus-visible { background: #ff8a3640; outline: 2px solid #ff8a36; }
+.boardNavButton:disabled { opacity: .35; cursor: default; }
+.boardPageCount { white-space: nowrap; color: #d2dfed; font-size: clamp(11px, 1cqw, 18px); }
+.shell[data-paused="true"] .gridScene { padding-bottom: 80px; }
 .spotlight { position: absolute; inset: 0; overflow: hidden; display: grid; grid-template-columns: 43% 57%; padding: 2cqh 3cqw 5cqh; }
 .decor { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: -1; }
 .aurora { position: absolute; width: 85%; height: 120%; right: -25%; top: -5%; background: radial-gradient(ellipse, color-mix(in srgb, var(--accent) 24%, transparent), transparent 65%); animation: auroraDrift 10s ease-in-out infinite alternate; }
@@ -296,4 +302,29 @@
   .ledHalo { opacity: .2; stroke-width: 5px; }
   .ledRim { opacity: .65; stroke-width: 1.5px; }
   .ledTrail, .ledRunner, .ledRunnerSecond { display: none; }
+}
+
+/* Subtle in-place zoom with a thin animated neon border around the active card. */
+.productGrid { position: relative; }
+.gridCard { overflow: hidden; transition: border-color .4s, box-shadow .4s; }
+.gridCard[data-focused="true"] { z-index: 10; border-color: transparent; box-shadow: 0 0 12px #65dfff30, 0 0 3px #b58aff70; }
+.gridCard::after {
+  content: ""; position: absolute; inset: 0; z-index: 50; border-radius: inherit;
+  padding: 1px; pointer-events: none; opacity: 0;
+  background: linear-gradient(110deg, #67e8ff, #ae83ff, #ff85c8, #ffbd81, #67e8ff);
+  background-size: 300% 300%;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  transition: opacity .35s;
+}
+.gridCard[data-focused="true"]::after { opacity: 1; animation: cardNeonFlow 2.2s ease-in-out infinite; }
+@keyframes cardNeonFlow { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+.boardImageLift { position: absolute; inset: 4% 38% 4% 2%; z-index: 2; }
+.boardImageFloat { position: absolute; inset: 0; animation: gridFloat 6s ease-in-out infinite; }
+.boardImageFloat img { object-fit: contain; filter: drop-shadow(8px 12px 8px #0008); }
+.gridCard[data-focused="true"] .boardImageLift { z-index: 5; }
+@container (aspect-ratio < 1) {
+  .boardImageLift { inset: 3% 5% 30%; }
 }
