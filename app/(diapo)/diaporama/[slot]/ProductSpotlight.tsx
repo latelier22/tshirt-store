@@ -1,12 +1,15 @@
 "use client";
 
-import { type CSSProperties } from "react";
+import { useMemo, type CSSProperties } from "react";
 import ProductImage from "./ProductImage";
+import PreparedNeon from "./PreparedNeon";
 import { HERO_IMAGE_SIZES } from "./preloadImages";
 import { motion } from "framer-motion";
 import type { HiboutikProduct } from "@/app/types/ProductType";
 import { formatPrice } from "@/app/lib/utils";
-import { firstImage, getEtatBadge, getPrice } from "./helpers";
+import { getEtatBadge, getPrice } from "./helpers";
+import { resolveProductImage } from "@/app/lib/diaporama-assets";
+import { usePreparedImages } from "./PreparedImagesProvider";
 import AnimatedWords from "./AnimatedWords";
 import StageDecor from "./StageDecor";
 import ProductStatusOverlay from "./ProductStatusOverlay";
@@ -31,7 +34,10 @@ function readAttributes(product: SpotlightProduct): Attribute[] {
 export default function ProductSpotlight({ product, index, portrait, onNext }: {
   product: SpotlightProduct; index: number; portrait: boolean; paused?: boolean; onNext: () => void;
 }) {
-  const currentSource = firstImage(product);
+  const { entries } = usePreparedImages();
+  const plan = useMemo(() => resolveProductImage(product, entries.get(Number(product.product_id)), "individual"), [product, entries]);
+
+  const neon = useMemo(() => resolveProductImage(product, entries.get(Number(product.product_id)), "individual-neon"), [product, entries]);
 
   const attributes = readAttributes(product);
   const guarantee = attributes.find(attribute => /garant/i.test(`${attribute.code} ${attribute.label}`));
@@ -40,7 +46,7 @@ export default function ProductSpotlight({ product, index, portrait, onNext }: {
   const condition = getEtatBadge(product);
   const accent = index % 2 === 0 ? "#ff8a36" : "#66d8ff";
 
-  return <article className={`${styles.spotlight} ${portrait ? styles.spotlightPortrait : ""}`}
+  return <article className={`${styles.spotlight} ${portrait ? styles.spotlightPortrait : ""}`} data-animated-neon={neon.effects}
     style={{ "--accent": accent } as CSSProperties}>
     <StageDecor />
     <div className={styles.spotlightCopy}>
@@ -73,8 +79,9 @@ export default function ProductSpotlight({ product, index, portrait, onNext }: {
       <div className={styles.productHalo} />
       <div className={styles.imageFloat}>
         <div className={styles.heroImage}>
-          {currentSource && <ProductImage src={currentSource} alt={product.product_model || "Produit"} priority
-            className={styles.productImage} sizes={HERO_IMAGE_SIZES} />}
+          <ProductImage plan={plan} alt={product.product_model || "Produit"} priority
+            className={styles.productImage} sizes={HERO_IMAGE_SIZES} />
+          {neon.effects && <PreparedNeon base={plan} neon={neon} sizes={HERO_IMAGE_SIZES} prominent />}
         </div>
       </div>
     </button>

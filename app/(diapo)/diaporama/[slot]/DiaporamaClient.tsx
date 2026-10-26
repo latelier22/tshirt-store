@@ -6,13 +6,15 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Pause, Play, ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { HiboutikProduct } from "@/app/types/ProductType";
 import { buildAlternatingSequence } from "@/app/lib/diaporama-sequence";
-import { getMessageDurationMs, firstImage } from "./helpers";
+import { getMessageDurationMs } from "./helpers";
 import type { DisplayMessage } from "./types";
 import ProductSpotlight from "./ProductSpotlight";
 import ProductBoard, { BOARD_INTRO_MS, BOARD_FOCUS_MS } from "./ProductBoard";
 import ProductStatusOverlay from "./ProductStatusOverlay";
 import MessageSlide from "./MessageSlide";
 import SignageShell from "./SignageShell";
+import { usePreparedImages } from "./PreparedImagesProvider";
+import { resolveProductImage } from "@/app/lib/diaporama-assets";
 import PreparationScreen from "./PreparationScreen";
 import { BOARD_IMAGE_SIZES, HERO_IMAGE_SIZES, preloadProductImages, waitForProductImages } from "./preloadImages";
 import styles from "./DiaporamaClient.module.css";
@@ -23,6 +25,7 @@ const PRODUCT_DISPLAY_MS = 8200;
 export default function DiaporamaClient({ products, messages = [], portrait = "0" }: {
   products: HiboutikProduct[]; messages?: DisplayMessage[]; portrait?: string;
 }) {
+  const { entries, loading: manifestLoading } = usePreparedImages();
   const [startupReady, setStartupReady] = React.useState(false);
   const [waiting, setWaiting] = React.useState(false);
   const generation = React.useRef(0);
@@ -47,24 +50,24 @@ export default function DiaporamaClient({ products, messages = [], portrait = "0
   React.useEffect(() => () => { generation.current++; }, []);
 
   React.useEffect(() => {
-    if (startupReady) return;
+    if (startupReady || manifestLoading) return;
     let cancelled = false;
     const minimum = messages[0] ? getMessageDurationMs(messages[0], 4) : 2500;
     void Promise.all([
-      waitForProductImages(currentGrid, BOARD_IMAGE_SIZES, () => !cancelled),
+      waitForProductImages(currentGrid, BOARD_IMAGE_SIZES, entries, () => !cancelled),
       new Promise(resolve => window.setTimeout(resolve, minimum)),
     ]).then(([ready]) => { if (ready && !cancelled) setStartupReady(true); });
     return () => { cancelled = true; };
-  }, [startupReady, currentGrid, messages]);
+  }, [startupReady, manifestLoading, currentGrid, messages, entries]);
 
   const prepareAndCommit = React.useCallback(async (items: HiboutikProduct[], sizes: string, commit: () => void) => {
     const token = ++generation.current;
     preparing.current = true; setWaiting(true);
-    const ready = await waitForProductImages(items, sizes, () => generation.current === token);
+    const ready = await waitForProductImages(items, sizes, entries, () => generation.current === token);
     if (generation.current !== token) return;
     preparing.current = false; setWaiting(false);
     if (ready) commit();
-  }, []);
+  }, [entries]);
 
   const cancelPreparation = () => {
     generation.current++; preparing.current = false; setWaiting(false);
@@ -94,12 +97,12 @@ export default function DiaporamaClient({ products, messages = [], portrait = "0
     if (!startupReady || isStopped) return;
     const upcoming = pageSteps.slice(mode === "grid" ? 0 : sequenceIndex + 1)
       .find(step => step.type === "product");
-    if (upcoming?.type === "product") void preloadProductImages([upcoming.product], HERO_IMAGE_SIZES);
+    if (upcoming?.type === "product") void preloadProductImages([upcoming.product], HERO_IMAGE_SIZES, entries);
     else {
       const nextPage = (gridPage + 1) % totalPages;
-      void preloadProductImages(products.slice(nextPage * ITEMS_PER_PAGE, (nextPage + 1) * ITEMS_PER_PAGE), BOARD_IMAGE_SIZES);
+      void preloadProductImages(products.slice(nextPage * ITEMS_PER_PAGE, (nextPage + 1) * ITEMS_PER_PAGE), BOARD_IMAGE_SIZES, entries);
     }
-  }, [startupReady, isStopped, pageSteps, mode, sequenceIndex, gridPage, totalPages, products]);
+  }, [startupReady, isStopped, pageSteps, mode, sequenceIndex, gridPage, totalPages, products, entries]);
 
   const durationMs = mode === "grid" ? BOARD_INTRO_MS + currentGrid.length * BOARD_FOCUS_MS
     : currentMessage ? getMessageDurationMs(currentMessage, 5) : PRODUCT_DISPLAY_MS;
@@ -147,7 +150,7 @@ export default function DiaporamaClient({ products, messages = [], portrait = "0
     <AnimatePresence>
       {zoomItem && <motion.div className={styles.zoom} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
         <div className={styles.zoomVisual}>
-          {firstImage(zoomItem) && <ProductImage src={firstImage(zoomItem)!} alt={zoomItem.product_model || ""} sizes="90vw" />}
+          <ProductImage plan={resolveProductImage(zoomItem, entries.get(Number(zoomItem.product_id)), "individual")} alt={zoomItem.product_model || ""} sizes="90vw" />
           <ProductStatusOverlay productId={zoomItem.product_id} salePending={zoomItem.salePending} large />
         </div>
         <button className={`${styles.controlButton} ${styles.zoomClose}`} onClick={() => setZoomItem(null)} aria-label="Fermer le zoom"><X /></button>

@@ -347,3 +347,50 @@
 @media (prefers-reduced-motion: reduce) {
   .tvLite .gridCard[data-focused="true"]::after { animation: none !important; }
 }
+
+/* A validated, baked halo replaces the card neon rather than stacking both effects. */
+.tvLite .gridCard[data-silhouette-halo="true"] { box-shadow: none; border-color: #ffffff1a; }
+.tvLite .gridCard[data-silhouette-halo="true"]::after { opacity: 0; animation: none !important; }
+
+/* Animated neon is baked by Sylius: just crossfade its light over the stationary cutout. */
+.preparedNeonLayer { position: absolute; inset: 0; pointer-events: none; }
+.preparedNeonPulse { object-fit: contain; }
+.tvLite .preparedNeonPulse { animation: preparedNeonBreathe 2.6s ease-in-out infinite !important; }
+@keyframes preparedNeonBreathe { 0%, 100% { opacity: .15; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .tvLite .preparedNeonPulse { animation: none !important; opacity: .65; }
+}
+/* The opaque product covers the centre; only the already-baked halo lights up around it. */
+.preparedNeonLayer { z-index: 0; }
+.preparedNeonMask { position: absolute; inset: 0; z-index: 2; overflow: hidden; mask-size: contain; mask-repeat: no-repeat; mask-position: center; -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; }
+.preparedNeonRunner { position: absolute; inset: -100%; background: conic-gradient(transparent 0deg 275deg, #67e8ff44 310deg, #c5f8ff 344deg, #fff 348deg 351deg, transparent 354deg); }
+.tvLite .preparedNeonRunner { animation: preparedNeonLap 3.2s linear infinite !important; }
+@keyframes preparedNeonLap { to { transform: rotate(360deg); } }
+.tvLite[data-paused="true"] .preparedNeonPulse, .tvLite[data-paused="true"] .preparedNeonRunner { animation-play-state: paused !important; }
+@media (prefers-reduced-motion: reduce) { .preparedNeonMask { display: none; } }
+
+/* Strong spotlight treatment: one moving cutout, baked alpha, no live blur or contour extraction. */
+.preparedNeonMask { transform: scale(1.025); }
+.preparedNeonLayer[data-prominent="true"] .preparedNeonMask { transform: scale(1.08); }
+.preparedNeonGlow { position: absolute; inset: 0; background: linear-gradient(135deg, #13e5ff, #775aff 42%, #ff4bd2 72%, #ffac58); opacity: .7; }
+.preparedNeonLayer[data-prominent="true"] .preparedNeonRunner { background: conic-gradient(transparent 0deg 260deg, #34dfff80 295deg, #a5faff 332deg, #fff 343deg 350deg, transparent 354deg); }
+.preparedNeonRunnerSecond { position: absolute; inset: -100%; background: conic-gradient(transparent 0deg 300deg, #ff64c680 322deg, #ffe0ba 341deg, #fff 347deg 351deg, transparent 355deg); }
+.tvLite .preparedNeonGlow { animation: preparedNeonIntensity 2.4s ease-in-out infinite !important; }
+.tvLite .preparedNeonLayer[data-prominent="true"] .preparedNeonRunner { animation: preparedNeonLap 2.1s linear infinite !important; }
+.tvLite .preparedNeonRunnerSecond { animation: preparedNeonLap 3.3s linear infinite reverse !important; }
+.tvLite .spotlight[data-animated-neon="true"] .imageFloat { animation: spotlightLevitate 5.8s ease-in-out infinite !important; }
+@keyframes preparedNeonIntensity { 0%, 100% { opacity: .5; } 50% { opacity: .95; } }
+@keyframes spotlightLevitate {
+  0%, 100% { transform: translateY(1%) rotate(-2deg) scale(.96); }
+  50% { transform: translateY(-3.5%) rotate(2deg) scale(1.025); }
+}
+.tvLite[data-paused="true"] .preparedNeonGlow,
+.tvLite[data-paused="true"] .preparedNeonRunnerSecond,
+.tvLite[data-paused="true"] .spotlight[data-animated-neon="true"] .imageFloat { animation-play-state: paused !important; }
+@media (prefers-reduced-motion: reduce) {
+  .tvLite .preparedNeonGlow, .tvLite .preparedNeonRunnerSecond,
+  .tvLite .spotlight[data-animated-neon="true"] .imageFloat { animation: none !important; }
+}
+/* Keep the rotating textures close to the visible product area on low-memory screens. */
+.preparedNeonRunner, .preparedNeonRunnerSecond { inset: -25%; }
+.tvLite[data-paused="true"] .preparedNeonLayer[data-prominent="true"] .preparedNeonRunner { animation-play-state: paused !important; }

@@ -15,7 +15,7 @@ import { sortProductsByRecency, getProductsRevision } from "@/app/lib/product-or
 
 type Props = {
   params: Promise<{ slot: string }>;
-  searchParams: Promise<{ portrait?: string }>;
+  searchParams: Promise<{ portrait?: string; prepared?: string }>;
 };
 
 type HiboutikProductWithFullTags = HiboutikProduct & {
@@ -52,9 +52,12 @@ export default async function DiaporamaSlotPage({
     redirect("https://boutique.multimedia-services.fr/tablet/wait?device=TAB1");
   }
 
-  const [rawMessages, rawProducts]: [unknown, HiboutikProduct[]] = await Promise.all([
+  const [messageResult, productResult] = await Promise.allSettled([
     syliusGetMessages(slot), hiboutikGetProductsByTag(slot),
   ]);
+  const rawMessages: unknown = messageResult.status === "fulfilled" ? messageResult.value : [];
+  const commercialReliable = productResult.status === "fulfilled";
+  const rawProducts: HiboutikProduct[] = commercialReliable && productResult.status === "fulfilled" ? productResult.value : [];
   const messageList: DisplayMessage[] = Array.isArray(rawMessages) ? rawMessages
     : rawMessages && typeof rawMessages === "object" && "data" in rawMessages && Array.isArray(rawMessages.data)
       ? rawMessages.data : [];
@@ -96,6 +99,8 @@ export default async function DiaporamaSlotPage({
         products={productsWithTags}
         messages={activeMessages}
         portrait={portraitMode}
+        commercialReliable={commercialReliable}
+        preparedImagesEnabled={sp.prepared !== "0" && process.env.DIAPORAMA_PREPARED_IMAGES !== "0"}
       />
     </>
   );

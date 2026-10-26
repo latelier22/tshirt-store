@@ -1,4 +1,4 @@
-export type ImageRequest = { src: string; sizes: string };
+export type ImageRequest = { src: string; sizes: string; prepared?: boolean };
 
 /** Small shared queue: avoid decoding nine large photos at once on low-memory TVs. */
 export function createImageReadiness(
@@ -11,7 +11,7 @@ export function createImageReadiness(
     while (active < concurrency && queue.length) queue.shift()!();
   };
   function prepareOne(request: ImageRequest): Promise<boolean> {
-    const key = `${request.sizes}|${request.src}`;
+    const key = `${request.prepared ? "prepared" : request.sizes}|${request.src}`;
     const existing = cache.get(key);
     if (existing) return existing.promise;
     let finish!: (ready: boolean) => void;
