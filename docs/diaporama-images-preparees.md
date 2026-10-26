@@ -31,12 +31,26 @@ Le champ informatif `source_url` n'est pas transmis au navigateur.
   `neon_individual_url` sous ces mêmes conditions. Cette règle remplace la demande
   initiale qui désactivait les néons individuels.
 
-La photo de base reste visible. Le halo préparé est préchargé, puis animé par opacité et
-rotation d'une lumière colorée masquée par son alpha existant. Aucun canvas, worker,
-analyse des pixels, extraction de contour ou filtre de flou n'est utilisé dans ce parcours.
-Sur la fiche individuelle validée, le produit flotte par translation CSS à taille constante. Le halo est élargi et une seule lumière tourne : la surface animée est calculée pour une taille de référence de 320 pixels physiques sur son grand côté. Le fond lumineux reste statique et seule son intensité préparée pulse. Cette version remplace les deux grandes lumières masquées qui pouvaient provoquer des saccades. L'effet est limité à la carte active ou au produit individuel visible. Le néon fin de la
-carte s'efface lorsque le halo préparé est chargé, pour éviter de cumuler les contours.
-Les dimensions servent notamment à compenser les marges du halo.
+La photo de base reste visible. Les animations néon ont été restaurées depuis le commit
+`eb66ff11ce1d353469d337bb08d3e282b8cc92eb` : halo et épaisseur qui respirent,
+traînée avec variation de couleur, point qui suit le contour SVG et variantes de rythme
+ou de double poursuite. Le flottement, l'inclinaison et le zoom d'origine sont rétablis
+uniquement sur les photos éligibles. Le néon fin de la carte se masque lorsqu'un contour
+éligible est affiché pour éviter l'accumulation.
+
+Le navigateur ne détoure pas et n'analyse pas les pixels. La route Next.js Node
+`/api/diaporama/<slot>/outline/<id>?context=individual&revision=<empreinte>` vérifie le
+manifeste puis extrait le vecteur de l'alpha du WebP **déjà détouré par Sylius** avec
+Sharp et l'algorithme de contour existant. L'extraction est bornée à 360 pixels sur le grand
+côté, mutualisée et mise en cache par URL versionnée (32 contours serveur, 24 côté client).
+Aucune photo n'est modifiée. Le SVG reprend les mêmes animations et filtres lumineux que
+le commit de référence ; les grands masques rotatifs ajoutés ensuite sont remplacés.
+
+Seuls les produits `ready`, `effects_ready`, transparents et détourés peuvent obtenir un
+contour. La révision doit correspondre et l'URL doit rester sur l'hôte Sylius autorisé.
+Un échec d'extraction laisse la photo intacte, avec le halo préfabriqué comme repli.
+Les fichiers restent préparés par Sylius, et aucun traitement n'est réinstallé sur la TV.
+La fluidité des anciens effets SVG sur une TV Android réelle reste à vérifier.
 
 Les WebP préparés sont affichés directement avec `next/image unoptimized`, sans
 réoptimisation ni paramètres anti-cache. Les photos habituelles conservent leur
@@ -73,3 +87,8 @@ L'API locale du port 3001 a répondu avec un manifeste valide. Le contrôle auto
 Chrome a été tenté mais le navigateur s'est arrêté au démarrage dans l'environnement
 d'exécution ; les captures et la fluidité réelle ne sont pas validées. Aucun test sur
 TV Android physique ni déploiement en production n'est revendiqué.
+
+Validation de la restauration : tests `diaporama-outline-server.test.ts` et
+`product-outline.test.ts`, TypeScript et ESLint ciblé. La route locale a renvoyé HTTP 200
+pour le produit 351 avec un contour de 360 × 360 et 1185 caractères de tracé. Sharp est
+une dépendance directe côté serveur ; les verrous npm et pnpm sont mis à jour.

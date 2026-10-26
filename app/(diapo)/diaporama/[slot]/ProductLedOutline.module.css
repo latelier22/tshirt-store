@@ -1,0 +1,40 @@
+/* Animations restored from commit eb66ff11. */
+.ledOutline { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.ledOutline .ledHalo { stroke-width: 10px; opacity: .35; filter: blur(7px) !important; animation: ledBreathe 4s ease-in-out infinite !important; }
+.ledOutline .ledRim { stroke-width: 1.6px; opacity: .8; animation: ledRimPulse 4s ease-in-out infinite !important; }
+.ledOutline .ledTrail { stroke: #70eaff; stroke-width: 4px; stroke-dasharray: 75 925; filter: drop-shadow(0 0 6px #65dfff) !important; animation: ledChase 3.4s linear infinite, ledColors 7s ease-in-out infinite !important; }
+.ledOutline .ledRunner { stroke: #fff; stroke-width: 6px; stroke-dasharray: 2 998; filter: drop-shadow(0 0 5px #fff) drop-shadow(0 0 11px #73dcff) !important; animation: ledChase 3.4s linear infinite !important; }
+.ledOutline .ledRunnerSecond { stroke: #ffd8ad; stroke-width: 4px; stroke-dasharray: 2 998; filter: drop-shadow(0 0 9px #ff8940) !important; animation: ledChaseReverse 4.6s ease-in-out infinite !important; opacity: 0; }
+.ledOutline[data-pattern="1"] .ledHalo { animation-duration: 2.8s !important; }
+.ledOutline[data-pattern="1"] .ledRim { animation-duration: 2.8s !important; }
+.ledOutline[data-pattern="1"] .ledTrail, .ledOutline[data-pattern="1"] .ledRunner { animation: ledChase 5s ease-in-out infinite, ledIntermittent 8s ease-in-out infinite !important; }
+.ledOutline[data-pattern="2"] .ledRunnerSecond { opacity: .95; }
+.ledOutline[data-pattern="2"] .ledTrail, .ledOutline[data-pattern="2"] .ledRunner { animation-duration: 2.4s, 6s !important; }
+@keyframes ledBreathe {
+  0%, 100% { stroke-width: 5px; opacity: .18; }
+  45% { stroke-width: 17px; opacity: .65; }
+  70% { stroke-width: 10px; opacity: .3; }
+}
+@keyframes ledRimPulse {
+  0%, 100% { stroke-width: 1px; opacity: .4; }
+  45% { stroke-width: 3px; opacity: 1; }
+  70% { stroke-width: 1.5px; opacity: .65; }
+}
+@keyframes ledChase { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -1000; } }
+@keyframes ledChaseReverse { from { stroke-dashoffset: -500; } to { stroke-dashoffset: 500; } }
+@keyframes ledColors { 0%, 100% { stroke: #70eaff; } 35% { stroke: #b48aff; } 70% { stroke: #ff9a55; } }
+@keyframes ledIntermittent { 0%, 30%, 100% { opacity: 0; } 45%, 85% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .ledHalo { opacity: .2; stroke-width: 5px; }
+  .ledRim { opacity: .65; stroke-width: 1.5px; }
+  .ledTrail, .ledRunner, .ledRunnerSecond { display: none; }
+}
+
+
+.layer { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.layer .ledOutline { z-index: 2; }
+.fallback { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.fallbackImage { object-fit: contain; opacity: .7; }
+@media (prefers-reduced-motion: reduce) {
+  .ledOutline .ledHalo, .ledOutline .ledRim { animation: none !important; }
+}

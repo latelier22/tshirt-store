@@ -409,3 +409,13 @@
 @media (prefers-reduced-motion: reduce) {
   .tvLite .spotlight[data-animated-neon="true"] .imageFloat { animation: none !important; }
 }
+
+/* Restore the original product movement from eb66ff11 on approved cutouts only. */
+.tvLite .spotlight[data-animated-neon="true"] .imageFloat {
+  animation: productFloat 6s ease-in-out infinite !important;
+}
+.tvLite[data-paused="true"] [data-original-neon] *,
+.tvLite[data-paused="true"] .spotlight[data-animated-neon="true"] .imageFloat { animation-play-state: paused !important; }
+@media (prefers-reduced-motion: reduce) {
+  .tvLite .spotlight[data-animated-neon="true"] .imageFloat { animation: none !important; }
+}

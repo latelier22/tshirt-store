@@ -7,7 +7,7 @@ import {
 } from "@/app/lib/diaporama-assets";
 
 const emptyEntries = new Map<number, PreparedEntry>();
-const Context = createContext({ entries: emptyEntries as ReadonlyMap<number, PreparedEntry>, loading: false, stale: false });
+const Context = createContext({ entries: emptyEntries as ReadonlyMap<number, PreparedEntry>, loading: false, stale: false, slot: "" });
 const retained = new Map<string, PreparedManifest>();
 export const usePreparedImages = () => useContext(Context);
 
@@ -55,7 +55,7 @@ export default function PreparedImagesProvider({ slot, enabled = true, children 
 
   const entries = useMemo(() => snapshot.manifest
     ? new Map(snapshot.manifest.products.map(entry => [entry.product_id, entry])) : emptyEntries, [snapshot.manifest]);
-  const value = useMemo(() => ({ entries, loading: snapshot.loading,
-    stale: !!snapshot.manifest && isManifestStale(snapshot.manifest) }), [entries, snapshot]);
+  const value = useMemo(() => ({ entries, loading: snapshot.loading, slot,
+    stale: !!snapshot.manifest && isManifestStale(snapshot.manifest) }), [entries, snapshot, slot]);
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }

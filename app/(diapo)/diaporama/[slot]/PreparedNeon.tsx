@@ -1,63 +1,71 @@
 "use client";
 
-import { memo, useEffect, useRef, useState, type CSSProperties } from "react";
-import { imagePlanKey, selectImageCandidate, type ImagePlan } from "@/app/lib/diaporama-assets";
+import { memo, useEffect, useState } from "react";
+import { imagePlanKey, preparedImageUrl, selectImageCandidate, type ImagePlan } from "@/app/lib/diaporama-assets";
+import type { ProductOutline } from "@/app/lib/product-outline";
 import ProductImage from "./ProductImage";
+import ProductLedOutline from "./ProductLedOutline";
 import { prepareImagePlan } from "./preloadImages";
-import styles from "./PreparedNeon.module.css";
+import { usePreparedImages } from "./PreparedImagesProvider";
+import styles from "./ProductLedOutline.module.css";
 
-/** Animate a prepared halo with opacity and a rotating light; never derive a contour or blur on the TV. */
-function PreparedNeon({ base, neon, sizes, onVisibleChange, prominent = false }: {
-  base: ImagePlan; neon: ImagePlan; sizes: string; onVisibleChange?: (visible: boolean) => void;
-  prominent?: boolean;
+type ReadyOutline = { image_url: string; outline: ProductOutline };
+const cache = new Map<string, Promise<ReadyOutline | null>>();
+function loadOutline(url: string): Promise<ReadyOutline | null> {
+  const existing = cache.get(url);
+  if (existing) return existing;
+  const job = (async () => {
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), 6500);
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      if (!response.ok || response.status === 204) return null;
+      const result = await response.json();
+      const outline = result?.outline;
+      if (!preparedImageUrl(result?.image_url) || !outline || typeof outline.path !== "string" ||
+        outline.path.length > 160000 || !/^[MLZ\d.,\s-]+$/.test(outline.path) ||
+        ![outline.width, outline.height].every(n => Number.isFinite(n) && n > 0 && n <= 360)) return null;
+      return result as ReadyOutline;
+    } catch { return null; }
+    finally { window.clearTimeout(timer); }
+  })();
+  cache.set(url, job);
+  if (cache.size > 24) cache.delete(cache.keys().next().value!);
+  void job.then(result => { if (!result) cache.delete(url); });
+  return job;
+}
+
+/** Exact SVG choreography from eb66ff11; only the server reads the cutout's pixels. */
+function PreparedNeon({ base, neon, sizes, productId, variant = 0, onVisibleChange, prominent = false }: {
+  base: ImagePlan; neon: ImagePlan; sizes: string; productId: number; variant?: number;
+  onVisibleChange?: (visible: boolean) => void; prominent?: boolean;
 }) {
+  const { slot } = usePreparedImages();
   const key = imagePlanKey(neon);
-  const [readyKey, setReadyKey] = useState("");
-  const layer = useRef<HTMLDivElement>(null);
-  const [raster, setRaster] = useState<{ width: number; height: number; scale: number } | null>(null);
+  const image = selectImageCandidate(base)?.url;
+  const [ready, setReady] = useState<{ key: string; contour: ReadyOutline | null } | null>(null);
   useEffect(() => {
-    if (!neon.effects) return;
+    if (!neon.effects || !neon.revision || !slot) return;
     let cancelled = false;
-    void prepareImagePlan(neon, sizes).then(() => { if (!cancelled) setReadyKey(key); });
+    const query = new URLSearchParams({ context: prominent ? "individual" : "board", revision: neon.revision });
+    const url = `/api/diaporama/${encodeURIComponent(slot)}/outline/${productId}?${query}`;
+    void loadOutline(url).then(async contour => {
+      if (!contour) await prepareImagePlan(neon, sizes);
+      if (cancelled) return;
+      setReady({ key, contour });
+      if (contour) onVisibleChange?.(true);
+    });
     return () => { cancelled = true; };
-  }, [key, neon, sizes]);
+  }, [key, neon, slot, productId, prominent, sizes, onVisibleChange]);
   useEffect(() => () => { onVisibleChange?.(false); }, [onVisibleChange]);
-  const candidate = selectImageCandidate(neon);
-  const haloWidth = candidate?.dimensions?.width;
-  const haloHeight = candidate?.dimensions?.height;
-  useEffect(() => {
-    const element = layer.current;
-    if (!element) return;
-    const measure = () => {
-      const width = haloWidth || element.clientWidth;
-      const height = haloHeight || element.clientHeight;
-      const fit = Math.min(element.clientWidth / width, element.clientHeight / height);
-      // Limit the animated surface instead of rotating multiple full-screen masked layers.
-      const limit = 320 / Math.max(1, window.devicePixelRatio || 1);
-      const ratio = Math.min(1, limit / Math.max(width, height));
-      const next = { width: width * ratio, height: height * ratio, scale: fit / ratio };
-      setRaster(previous => previous && Math.abs(previous.scale - next.scale) < .001 &&
-        previous.width === next.width && previous.height === next.height ? previous : next);
-    };
-    const observer = new ResizeObserver(measure);
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [readyKey, key, haloWidth, haloHeight]);
-  if (!neon.effects || readyKey !== key || !candidate?.effects) return null;
-  const normal = selectImageCandidate(base)?.dimensions;
-  const halo = candidate.dimensions;
-  const scale = normal && halo ? Math.min(1.25, Math.max(halo.width / normal.width, halo.height / normal.height)) : 1;
-  return <div ref={layer} className={styles.layer} data-prepared-neon data-prominent={prominent} aria-hidden="true" style={{ transform: `scale(${scale})` } as CSSProperties}>
-    <ProductImage plan={neon} alt="" sizes={sizes} className={styles.pulse}
-      onlyEffects onEffectsChange={onVisibleChange} />
-    {raster && <div className={styles.raster} style={{ width: raster.width, height: raster.height,
-      transform: `translate(-50%, -50%) scale(${raster.scale})` }}><div className={styles.mask} style={{
-      maskImage: `url(${JSON.stringify(candidate.url)})`,
-      WebkitMaskImage: `url(${JSON.stringify(candidate.url)})`,
-    }}>
-      <div className={styles.glow} />
-      <div className={styles.runner} />
-    </div></div>}
+  if (!neon.effects || ready?.key !== key) return null;
+  if (ready.contour && ready.contour.image_url === image) return <div className={styles.layer} data-original-neon aria-hidden="true">
+    <ProductLedOutline outline={ready.contour.outline} variant={variant} />
+  </div>;
+  if (!selectImageCandidate(neon)?.effects) return null;
+  // Keep the baked server halo if contour preparation is temporarily unavailable.
+  return <div className={styles.fallback} aria-hidden="true">
+    <ProductImage plan={neon} alt="" sizes={sizes} className={styles.fallbackImage} onlyEffects onEffectsChange={onVisibleChange} />
   </div>;
 }
 export default memo(PreparedNeon);

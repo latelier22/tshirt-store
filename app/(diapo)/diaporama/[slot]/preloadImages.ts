@@ -53,10 +53,6 @@ export async function preloadProductImages(
     await Promise.all(products.slice(index, index + 2).map(async product => {
       const entry = entries.get(Number(product.product_id));
       await prepareImagePlan(resolveProductImage(product, entry, context), sizes);
-      if (context === "individual" && valid()) {
-        const neon = resolveProductImage(product, entry, "individual-neon");
-        if (neon.effects) await prepareImagePlan(neon, sizes);
-      }
     }));
   }
   return valid();

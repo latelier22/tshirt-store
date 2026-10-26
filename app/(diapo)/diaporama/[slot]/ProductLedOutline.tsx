@@ -2,7 +2,7 @@
 
 import { useId } from "react";
 import type { ProductOutline } from "@/app/lib/product-outline";
-import styles from "./DiaporamaClient.module.css";
+import styles from "./ProductLedOutline.module.css";
 
 /** The running light follows the extracted product path, never its rectangular image bounds. */
 export default function ProductLedOutline({ outline, variant = 0 }: {

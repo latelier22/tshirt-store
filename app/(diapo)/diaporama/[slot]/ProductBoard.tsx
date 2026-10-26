@@ -25,7 +25,7 @@ const Tile = memo(function Tile({ product, entry, focused, onZoom }: {
     onClick={() => onZoom(product)} aria-label={`Agrandir ${product.product_model || "le produit"}`}>
     <div className={styles.boardImageLift}><div className={styles.boardImageFloat}>
       <ProductImage plan={normal} alt={product.product_model || ""} sizes={BOARD_IMAGE_SIZES} />
-      {focused && active.effects && <PreparedNeon base={normal} neon={active} sizes={BOARD_IMAGE_SIZES} onVisibleChange={setHasHalo} />}
+      {focused && active.effects && <PreparedNeon base={normal} neon={active} productId={product.product_id} variant={product.product_id % 3} sizes={BOARD_IMAGE_SIZES} onVisibleChange={setHasHalo} />}
     </div></div>
     <div className={styles.gridCardInfo}>
       {condition && <span className={styles.gridCondition}>{condition.label}</span>}

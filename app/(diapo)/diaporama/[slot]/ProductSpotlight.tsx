@@ -81,7 +81,7 @@ export default function ProductSpotlight({ product, index, portrait, onNext }: {
         <div className={styles.heroImage}>
           <ProductImage plan={plan} alt={product.product_model || "Produit"} priority
             className={styles.productImage} sizes={HERO_IMAGE_SIZES} />
-          {neon.effects && <PreparedNeon base={plan} neon={neon} sizes={HERO_IMAGE_SIZES} prominent />}
+          {neon.effects && <PreparedNeon base={plan} neon={neon} productId={product.product_id} variant={index} sizes={HERO_IMAGE_SIZES} prominent />}
         </div>
       </div>
     </button>
