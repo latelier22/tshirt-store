@@ -394,3 +394,18 @@
 /* Keep the rotating textures close to the visible product area on low-memory screens. */
 .preparedNeonRunner, .preparedNeonRunnerSecond { inset: -25%; }
 .tvLite[data-paused="true"] .preparedNeonLayer[data-prominent="true"] .preparedNeonRunner { animation-play-state: paused !important; }
+
+/* Stable-size compositor layer: translation avoids rerasterizing zoomed masked content. */
+.tvLite .spotlight[data-animated-neon="true"] .imageFloat {
+  animation: spotlightGlide 5.8s ease-in-out infinite !important;
+  will-change: transform; backface-visibility: hidden;
+}
+@keyframes spotlightGlide {
+  0%, 100% { transform: translate3d(0, 8px, 0); }
+  50% { transform: translate3d(0, -14px, 0); }
+}
+.tvLite[data-paused="true"] [data-prepared-neon] *,
+.tvLite[data-paused="true"] .spotlight[data-animated-neon="true"] .imageFloat { animation-play-state: paused !important; }
+@media (prefers-reduced-motion: reduce) {
+  .tvLite .spotlight[data-animated-neon="true"] .imageFloat { animation: none !important; }
+}

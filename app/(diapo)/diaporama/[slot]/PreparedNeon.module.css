@@ -1,0 +1,13 @@
+.layer { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.layer .pulse { object-fit: contain; animation: neonBreath 3.6s ease-in-out infinite !important; }
+.raster { position: absolute; left: 50%; top: 50%; isolation: isolate; transform-origin: center; }
+.mask { position: absolute; inset: 0; z-index: 2; overflow: hidden; transform: scale(1.025); mask-size: contain; mask-repeat: no-repeat; mask-position: center; -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; }
+.layer[data-prominent="true"] .mask { transform: scale(1.08); }
+.glow { position: absolute; inset: 0; background: linear-gradient(135deg, #13e5ff, #775aff 42%, #ff4bd2 72%, #ffac58); opacity: .75; }
+.layer .runner { position: absolute; inset: -25%; background: conic-gradient(transparent 0deg 260deg, #34dfff80 295deg, #a5faff 332deg, #fff 343deg 350deg, transparent 354deg); animation: neonLap 2.8s linear infinite !important; will-change: transform; backface-visibility: hidden; }
+@keyframes neonLap { to { transform: rotate(360deg); } }
+@keyframes neonBreath { 0%, 100% { opacity: .35; } 50% { opacity: .85; } }
+@media (prefers-reduced-motion: reduce) {
+  .layer .pulse { animation: none !important; opacity: .7; }
+  .raster { display: none; }
+}

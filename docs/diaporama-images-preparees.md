@@ -34,7 +34,7 @@ Le champ informatif `source_url` n'est pas transmis au navigateur.
 La photo de base reste visible. Le halo préparé est préchargé, puis animé par opacité et
 rotation d'une lumière colorée masquée par son alpha existant. Aucun canvas, worker,
 analyse des pixels, extraction de contour ou filtre de flou n'est utilisé dans ce parcours.
-Sur la fiche individuelle validée, le produit flotte par transformation CSS et le halo est élargi : deux lumières tournent en sens opposés, avec une pulsation plus marquée. Les textures tournantes restent bornées à 150 % de la zone visible. L'effet est limité à la carte active ou au produit individuel visible. Le néon fin de la
+Sur la fiche individuelle validée, le produit flotte par translation CSS à taille constante. Le halo est élargi et une seule lumière tourne : la surface animée est calculée pour une taille de référence de 320 pixels physiques sur son grand côté. Le fond lumineux reste statique et seule son intensité préparée pulse. Cette version remplace les deux grandes lumières masquées qui pouvaient provoquer des saccades. L'effet est limité à la carte active ou au produit individuel visible. Le néon fin de la
 carte s'efface lorsque le halo préparé est chargé, pour éviter de cumuler les contours.
 Les dimensions servent notamment à compenser les marges du halo.
 
