@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import CutoutImage from "./CutoutImage";
+import ProductImage from "./ProductImage";
 import { AnimatePresence, motion } from "framer-motion";
 import { Pause, Play, ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { HiboutikProduct } from "@/app/types/ProductType";
@@ -13,6 +13,8 @@ import ProductBoard, { BOARD_INTRO_MS, BOARD_FOCUS_MS } from "./ProductBoard";
 import ProductStatusOverlay from "./ProductStatusOverlay";
 import MessageSlide from "./MessageSlide";
 import SignageShell from "./SignageShell";
+import PreparationScreen from "./PreparationScreen";
+import { BOARD_IMAGE_SIZES, HERO_IMAGE_SIZES, preloadProductImages, waitForProductImages } from "./preloadImages";
 import styles from "./DiaporamaClient.module.css";
 
 const ITEMS_PER_PAGE = 9;
@@ -21,6 +23,10 @@ const PRODUCT_DISPLAY_MS = 8200;
 export default function DiaporamaClient({ products, messages = [], portrait = "0" }: {
   products: HiboutikProduct[]; messages?: DisplayMessage[]; portrait?: string;
 }) {
+  const [startupReady, setStartupReady] = React.useState(false);
+  const [waiting, setWaiting] = React.useState(false);
+  const generation = React.useRef(0);
+  const preparing = React.useRef(false);
   const [mode, setMode] = React.useState<"grid" | "sequence">("grid");
   const [gridPage, setGridPage] = React.useState(0);
   const [sequenceIndex, setSequenceIndex] = React.useState(0);
@@ -38,23 +44,62 @@ export default function DiaporamaClient({ products, messages = [], portrait = "0
   const isPortrait = portrait === "1" || portrait === "-1";
   const isStopped = paused || !!zoomItem;
 
+  React.useEffect(() => () => { generation.current++; }, []);
+
+  React.useEffect(() => {
+    if (startupReady) return;
+    let cancelled = false;
+    const minimum = messages[0] ? getMessageDurationMs(messages[0], 4) : 2500;
+    void Promise.all([
+      waitForProductImages(currentGrid, BOARD_IMAGE_SIZES, () => !cancelled),
+      new Promise(resolve => window.setTimeout(resolve, minimum)),
+    ]).then(([ready]) => { if (ready && !cancelled) setStartupReady(true); });
+    return () => { cancelled = true; };
+  }, [startupReady, currentGrid, messages]);
+
+  const prepareAndCommit = React.useCallback(async (items: HiboutikProduct[], sizes: string, commit: () => void) => {
+    const token = ++generation.current;
+    preparing.current = true; setWaiting(true);
+    const ready = await waitForProductImages(items, sizes, () => generation.current === token);
+    if (generation.current !== token) return;
+    preparing.current = false; setWaiting(false);
+    if (ready) commit();
+  }, []);
+
+  const cancelPreparation = () => {
+    generation.current++; preparing.current = false; setWaiting(false);
+  };
+
   const goGrid = React.useCallback((direction: number) => {
-    setGridPage(page => (page + direction + totalPages) % totalPages);
-    setMode("grid"); setSequenceIndex(0);
-    setMessageOffset(offset => messages.length ? (offset + currentGrid.length) % messages.length : 0);
-  }, [totalPages, messages.length, currentGrid.length]);
+    const nextPage = (gridPage + direction + totalPages) % totalPages;
+    const nextProducts = products.slice(nextPage * ITEMS_PER_PAGE, (nextPage + 1) * ITEMS_PER_PAGE);
+    return prepareAndCommit(nextProducts, BOARD_IMAGE_SIZES, () => {
+      setGridPage(nextPage); setMode("grid"); setSequenceIndex(0);
+      setMessageOffset(offset => messages.length ? (offset + currentGrid.length) % messages.length : 0);
+    });
+  }, [gridPage, totalPages, products, messages.length, currentGrid.length, prepareAndCommit]);
 
   const advance = React.useCallback(() => {
-    if (mode === "grid") {
-      setMode("sequence"); setSequenceIndex(0);
-      return;
+    if (preparing.current) return;
+    const nextIndex = mode === "grid" ? 0 : sequenceIndex + 1;
+    if (nextIndex >= pageSteps.length) { void goGrid(1); return; }
+    const next = pageSteps[nextIndex];
+    const commit = () => { setMode("sequence"); setSequenceIndex(nextIndex); };
+    if (next.type === "product") void prepareAndCommit([next.product], HERO_IMAGE_SIZES, commit);
+    else commit();
+  }, [mode, sequenceIndex, pageSteps, goGrid, prepareAndCommit]);
+
+  // Prepare just the upcoming product (or board), keeping decoded-image memory bounded.
+  React.useEffect(() => {
+    if (!startupReady || isStopped) return;
+    const upcoming = pageSteps.slice(mode === "grid" ? 0 : sequenceIndex + 1)
+      .find(step => step.type === "product");
+    if (upcoming?.type === "product") void preloadProductImages([upcoming.product], HERO_IMAGE_SIZES);
+    else {
+      const nextPage = (gridPage + 1) % totalPages;
+      void preloadProductImages(products.slice(nextPage * ITEMS_PER_PAGE, (nextPage + 1) * ITEMS_PER_PAGE), BOARD_IMAGE_SIZES);
     }
-    if (sequenceIndex + 1 < pageSteps.length) {
-      setSequenceIndex(index => index + 1);
-    } else {
-      goGrid(1);
-    }
-  }, [mode, sequenceIndex, pageSteps.length, goGrid]);
+  }, [startupReady, isStopped, pageSteps, mode, sequenceIndex, gridPage, totalPages, products]);
 
   const durationMs = mode === "grid" ? BOARD_INTRO_MS + currentGrid.length * BOARD_FOCUS_MS
     : currentMessage ? getMessageDurationMs(currentMessage, 5) : PRODUCT_DISPLAY_MS;
@@ -62,18 +107,21 @@ export default function DiaporamaClient({ products, messages = [], portrait = "0
     : `${gridPage}-${currentStep?.key}`;
 
   React.useEffect(() => {
-    if (isStopped || !pageSteps.length) return;
+    if (!startupReady || isStopped || !pageSteps.length) return;
     const timer = window.setTimeout(advance, durationMs);
     return () => clearTimeout(timer);
-  }, [isStopped, advance, durationMs, pageSteps.length]);
+  }, [startupReady, isStopped, advance, durationMs, pageSteps.length]);
+
+  if (!startupReady) return <PreparationScreen portrait={portrait} message={messages[0]} />;
 
   return <SignageShell portrait={portrait} paused={isStopped} sceneKey={sceneKey} durationMs={durationMs}
-    footer={paused ? "Lecture en pause" : mode === "grid" ? `La sélection · ${gridPage % totalPages + 1} / ${totalPages}`
+    footer={waiting ? "La suite arrive…" : paused ? "Lecture en pause" : mode === "grid" ? `La sélection · ${gridPage % totalPages + 1} / ${totalPages}`
       : currentProduct?.salePending ? "Vente en cours · à retrouver demain : notre nouvelle sélection" : "À découvrir en magasin"}
     controls={<>
     <div className={styles.controls}>
       <button className={styles.controlButton} aria-label={paused ? "Reprendre le diaporama" : "Mettre en pause"}
         onClick={() => {
+          cancelPreparation();
           if (!paused) {
             setMode("grid"); setSequenceIndex(0); setZoomItem(null);
           }
@@ -81,30 +129,25 @@ export default function DiaporamaClient({ products, messages = [], portrait = "0
         }}>{paused ? <Play size={18} /> : <Pause size={18} />}</button>
     </div>
     {paused && <nav className={styles.boardNavigation} aria-label="Navigation entre les planches">
-      <button className={styles.boardNavButton} disabled={totalPages <= 1} onClick={() => goGrid(-1)}>
+      <button className={styles.boardNavButton} disabled={totalPages <= 1 || waiting} onClick={() => goGrid(-1)}>
         <ChevronLeft size={22} /><span>Précédente</span>
       </button>
       <span className={styles.boardPageCount} aria-live="polite">Planche {gridPage % totalPages + 1} / {totalPages}</span>
-      <button className={styles.boardNavButton} disabled={totalPages <= 1} onClick={() => goGrid(1)}>
+      <button className={styles.boardNavButton} disabled={totalPages <= 1 || waiting} onClick={() => goGrid(1)}>
         <span>Suivante</span><ChevronRight size={22} />
       </button>
     </nav>}
     </>}>
-    <AnimatePresence mode="sync" initial={false}>
-      <motion.div key={sceneKey} className="absolute inset-0"
-        initial={{ opacity: 0, x: 65, scale: 1.03 }} animate={{ opacity: 1, x: 0, scale: 1 }}
-        exit={{ opacity: 0, x: -65, scale: .97, pointerEvents: "none" }}
-        transition={{ duration: .55, ease: [.22, 1, .36, 1] }}>
-        {mode === "grid" && <ProductBoard products={currentGrid} paused={isStopped} onZoom={setZoomItem} />}
+      <div key={sceneKey} className="absolute inset-0">
+        {mode === "grid" && <ProductBoard products={currentGrid} paused={isStopped} onZoom={product => { cancelPreparation(); setZoomItem(product); }} />}
         {currentProduct && <ProductSpotlight product={currentProduct} index={sequenceIndex}
-          portrait={isPortrait} paused={isStopped} onNext={() => { if (!isStopped) advance(); }} />}
+          portrait={isPortrait} onNext={() => { if (!isStopped) advance(); }} />}
         {currentMessage && <MessageSlide message={currentMessage} slideKey={sceneKey} />}
-      </motion.div>
-    </AnimatePresence>
+      </div>
     <AnimatePresence>
       {zoomItem && <motion.div className={styles.zoom} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
         <div className={styles.zoomVisual}>
-          {firstImage(zoomItem) && <CutoutImage src={firstImage(zoomItem)!} alt={zoomItem.product_model || ""} sizes="90vw" />}
+          {firstImage(zoomItem) && <ProductImage src={firstImage(zoomItem)!} alt={zoomItem.product_model || ""} sizes="90vw" />}
           <ProductStatusOverlay productId={zoomItem.product_id} salePending={zoomItem.salePending} large />
         </div>
         <button className={`${styles.controlButton} ${styles.zoomClose}`} onClick={() => setZoomItem(null)} aria-label="Fermer le zoom"><X /></button>

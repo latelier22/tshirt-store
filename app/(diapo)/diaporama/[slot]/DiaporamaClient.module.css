@@ -328,3 +328,22 @@
 @container (aspect-ratio < 1) {
   .boardImageLift { inset: 3% 5% 30%; }
 }
+
+/* Emergency Android TV profile: original photos, static composition, one small LED at a time. */
+.tvLite *, .tvLite *::before, .tvLite *::after {
+  animation: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+}
+.tvLite .aurora, .tvLite .orbit, .tvLite .orbitInner, .tvLite .lightSweep,
+.tvLite .stageGrid, .tvLite .imageShine, .tvLite .groundShadow { display: none; }
+.tvLite .decor { background: radial-gradient(ellipse at 80% 40%, #24354760, transparent 65%); }
+.tvLite .productImage { background: #fff; border-radius: 12px; }
+.tvLite .logoPanel { box-shadow: none; }
+.tvLite .gridCard[data-focused="true"] { box-shadow: 0 0 5px #65dfff45; }
+.tvLite .gridCard[data-focused="true"]::after { animation: cardNeonFlow 2.2s ease-in-out infinite !important; }
+.tvLite .progressFill { animation: stageProgress var(--duration, 8s) linear both !important; }
+.tvLite[data-paused="true"] *, .tvLite[data-paused="true"] *::before, .tvLite[data-paused="true"] *::after { animation-play-state: paused !important; }
+@media (prefers-reduced-motion: reduce) {
+  .tvLite .gridCard[data-focused="true"]::after { animation: none !important; }
+}

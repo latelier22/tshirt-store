@@ -52,16 +52,16 @@ export default async function DiaporamaSlotPage({
     redirect("https://boutique.multimedia-services.fr/tablet/wait?device=TAB1");
   }
 
-  const rawMessages = await syliusGetMessages(slot);
+  const [rawMessages, rawProducts]: [unknown, HiboutikProduct[]] = await Promise.all([
+    syliusGetMessages(slot), hiboutikGetProductsByTag(slot),
+  ]);
   const messageList: DisplayMessage[] = Array.isArray(rawMessages) ? rawMessages
-    : Array.isArray(rawMessages?.data) ? rawMessages.data : [];
+    : rawMessages && typeof rawMessages === "object" && "data" in rawMessages && Array.isArray(rawMessages.data)
+      ? rawMessages.data : [];
 
   const activeMessages: DisplayMessage[] = messageList
     .filter((m) => isMessageActive(m))
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-
-  const rawProducts: HiboutikProduct[] =
-    await hiboutikGetProductsByTag(slot);
 
   const filteredProducts: HiboutikProduct[] = rawProducts.filter(
     (p) => hasUsableImage(p) && isDiaporamaProductAvailable(p)

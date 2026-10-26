@@ -36,10 +36,10 @@ export default function DiaporamaMessagesClient({ messages, portrait = 0, notice
 
   return <SignageShell portrait={String(portrait)} sceneKey={sceneKey} durationMs={durationMs}
     footer={notice || "À découvrir en magasin"}>
-    <AnimatePresence mode="sync" initial={false}>
+    <AnimatePresence mode="wait" initial={false}>
       <motion.div key={sceneKey} className="absolute inset-0"
-        initial={{ opacity: 0, x: 60, scale: 1.04 }} animate={{ opacity: 1, x: 0, scale: 1 }}
-        exit={{ opacity: 0, x: -60, scale: .96 }} transition={{ duration: .6, ease: [.22, 1, .36, 1] }}>
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }} transition={{ duration: .18 }}>
         {showMessage ? <MessageSlide message={message} slideKey={sceneKey} /> : <section className={styles.logoScene}>
           <StageDecor />
           <motion.div className={styles.logoPanel} initial={{ opacity: 0, scale: .8, rotate: -4 }}

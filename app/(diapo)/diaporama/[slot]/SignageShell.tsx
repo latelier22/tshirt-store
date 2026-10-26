@@ -15,10 +15,10 @@ export default function SignageShell({ portrait = "0", paused = false, sceneKey,
     position: "absolute", top: "50%", left: "50%", width: "100vh", height: "100vw",
     transform: `translate(-50%, -50%) rotate(${portrait === "-1" ? -90 : 90}deg)`,
   } : { position: "absolute", inset: 0 };
-  return <MotionConfig reducedMotion="user">
+  return <MotionConfig reducedMotion="always" transition={{ duration: .18 }}>
     <main className="fixed inset-0 overflow-hidden bg-[#080c14] text-white">
       <div style={canvas}>
-        <div className={styles.shell} data-paused={paused}>
+        <div className={`${styles.shell} ${styles.tvLite}`} data-paused={paused}>
           <header className={styles.brandBar}>
             <div className={styles.brandLogo}>
               <Image src="/logo-multimedia.png" alt="Multimédia Services" width={300} height={100} priority />

@@ -21,20 +21,20 @@ export default function MessageSlide({ message, slideKey }: {
     <StageDecor />
     <div className={styles.messageGhost} aria-hidden="true">{badge || "MULTIMÉDIA"}</div>
     <div className={styles.messageContent}>
-      {badge && <motion.div className={styles.messageBadge} initial={{ opacity: 0, scale: .6, rotate: -8 }}
+      {badge && <motion.div className={styles.messageBadge} initial={false}
         animate={{ opacity: 1, scale: 1, rotate: -3 }} transition={{ type: "spring", damping: 15, delay: .12 }}>
         <span className={styles.liveDot} />{badge}
       </motion.div>}
       {title && <h1 className={styles.messageTitle}><AnimatedWords text={title} delay={.12} /></h1>}
-      <motion.div className={styles.messageRule} initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: .45, duration: .7 }} />
+      <motion.div className={styles.messageRule} initial={false} animate={{ scaleX: 1 }} transition={{ delay: .45, duration: .7 }} />
       {lines.map((line, index) => line && (line === "_________"
         ? <div key={index} className={styles.messageSeparator} />
         : <motion.div key={`${index}-${line}`} className={index === 0 ? styles.messageLead : styles.messageLine}
-          initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .55 + index * .16, duration: .6 }}>
+          initial={false} animate={{ opacity: 1, y: 0 }} transition={{ delay: .55 + index * .16, duration: .6 }}>
           {line}
         </motion.div>))}
       {safeText(message.footerText) && <motion.div className={styles.messageFooter}
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.05 }}>
+        initial={false} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.05 }}>
         {message.footerText}<span aria-hidden="true">↗</span>
       </motion.div>}
     </div>

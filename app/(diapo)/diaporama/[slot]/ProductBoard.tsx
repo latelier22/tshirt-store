@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
 import type { HiboutikProduct } from "@/app/types/ProductType";
 import { formatPrice } from "@/app/lib/utils";
 import { firstImage, getEtatBadge, getPrice } from "./helpers";
-import CutoutImage from "./CutoutImage";
+import ProductImage from "./ProductImage";
+import { BOARD_IMAGE_SIZES } from "./preloadImages";
 import ProductStatusOverlay from "./ProductStatusOverlay";
 import styles from "./DiaporamaClient.module.css";
 
@@ -15,7 +15,6 @@ export const BOARD_FOCUS_MS = 1800;
 export default function ProductBoard({ products, paused, onZoom }: {
   products: HiboutikProduct[]; paused: boolean; onZoom: (product: HiboutikProduct) => void;
 }) {
-  const reduced = useReducedMotion();
   const [active, setActive] = useState(-1);
 
   useEffect(() => {
@@ -34,23 +33,20 @@ export default function ProductBoard({ products, paused, onZoom }: {
         const image = firstImage(product);
         const condition = getEtatBadge(product);
         const focused = index === active;
-        return <motion.button key={product.product_id} className={styles.gridCard} data-focused={focused}
+        return <button key={product.product_id} className={styles.gridCard} data-focused={focused}
           onClick={() => onZoom(product)} aria-label={`Agrandir ${product.product_model || "le produit"}`}
-          initial={{ opacity: 0, y: 40, scale: .9 }} animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ delay: index * .055, duration: .6, ease: [.22, 1, .36, 1] }}>
-          <motion.div className={styles.boardImageLift}
-            animate={{ scale: focused && !reduced ? 1.12 : 1 }}
-            transition={{ duration: .55, ease: [.22, 1, .36, 1] }}>
+>
+          <div className={styles.boardImageLift}>
             <div className={styles.boardImageFloat} style={{ animationDelay: `${index * -.4}s` }}>
-              {image && <CutoutImage src={image} alt={product.product_model || ""} sizes="40vw" />}
+              {image && <ProductImage src={image} alt={product.product_model || ""} sizes={BOARD_IMAGE_SIZES} />}
             </div>
-          </motion.div>
+          </div>
           <div className={styles.gridCardInfo}>
             {condition && <span className={styles.gridCondition}>{condition.label}</span>}
             <h2>{product.product_model}</h2><strong>{formatPrice(getPrice(product).price)}</strong>
           </div>
           <ProductStatusOverlay productId={product.product_id} salePending={product.salePending} />
-        </motion.button>;
+        </button>;
       })}
     </div>
   </section>;

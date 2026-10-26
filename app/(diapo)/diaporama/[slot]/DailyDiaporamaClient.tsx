@@ -6,6 +6,7 @@ import { getDiaporamaDay, mergeDailyProducts } from "@/app/lib/diaporama-stock";
 import { sortProductsByRecency } from "@/app/lib/product-order";
 import type { DisplayMessage } from "./types";
 import DiaporamaClient from "./DiaporamaClient";
+import PreparationScreen from "./PreparationScreen";
 import DiaporamaMessagesClient from "./DiaporamaMessagesClient";
 
 type RememberedProduct = HiboutikProduct & { salePending?: boolean };
@@ -56,7 +57,7 @@ export default function DailyDiaporamaClient({ slot, products, messages, portrai
   }, [slot, day, products]);
 
   // Wait for local storage so a reload never briefly hides today's sold products.
-  if (!dailyProducts) return <main className="fixed inset-0 bg-black" />;
+  if (!dailyProducts) return <PreparationScreen portrait={portrait} message={messages[0]} />;
 
   if (!dailyProducts.length) {
     if (messages.length) {

@@ -4,6 +4,7 @@
 // ✅ On lit ton cache VPS : https://api.multimedia-services.fr
 // ✅ On garde le proxy d’images /api/hiboutik/image (côté Next) pour ne rien casser.
 import { selectProductsByTag } from "./products-by-tag";
+import { isDiaporamaProductAvailable } from "./diaporama-stock";
 
 function cacheBase() {
   const base = process.env.CACHE_API_BASE || "https://api.multimedia-services.fr";
@@ -150,7 +151,8 @@ export async function hiboutikGetProductsListByTag(tag: string) {
 }
 
 export async function hiboutikGetProductsByTag(tag: string) {
-  const items = await hiboutikGetProductsListByTag(tag);
+  // Fetch details only for eligible products, rather than every historical tag match.
+  const items = (await hiboutikGetProductsListByTag(tag)).filter(isDiaporamaProductAvailable);
   const detailedItems = await Promise.all(
     items.map(async (item) => {
       try {
